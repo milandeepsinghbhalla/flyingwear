@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
     return view('welcome');
 });
  */
-Route::any('{slug}', function () {
+Route::any('/', function () {
     return view('flyingwear');
 });
 Auth::routes();
