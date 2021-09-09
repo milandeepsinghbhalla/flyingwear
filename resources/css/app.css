@@ -1,0 +1,37 @@
+
+/* below is css code for sign up form */
+.img-fill{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+.bg-grey{
+    background-color: #d3d3d3;
+}
+.bg-img-yellow{
+    /*background-color: #f4c723;*/
+    background-color: #ffbd59;
+}
+.text-peach{
+    color: #ffbd59;
+}
+.button{
+    margin: 0 auto;
+}
+.button-parent{
+    text-align: center;
+}
+input.form-control:focus{
+
+    border-color:  #ffbd59;
+    box-shadow: 0 0 0 0.2rem rgb(255 189 89 / 50%);
+}
+@media screen and (max-width: 650px){
+    .media-margin{
+        margin: 0 5%;
+    }
+}
+a.hover-white:hover, a.hover-white:focus{
+    color: white !important;
+}
+/* below is css code for drop down */

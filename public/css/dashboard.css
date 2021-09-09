@@ -1,0 +1,14 @@
+.dash-list{
+    background-color: #d3d3d3;
+    min-height: 100vh;
+}
+.dash-link{
+    list-style: none;
+    position: fixed;
+}
+.dash-buttons{
+    border-bottom: 1px solid #7e7e7e;
+    margin-bottom: 0.4rem;
+    margin-top: 0.4rem;
+    display: flex;
+}
