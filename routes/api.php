@@ -21,6 +21,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 Route::post('add-user',[usercontroller::class,'add_user']);
 Route::post('login',[usercontroller::class,'login']);
+Route::post('filter',[usercontroller::class,'update_filter_results']);
+Route::post('get-filter-data',[usercontroller::class,'get_filters']);
 Route::post('update-cart',[usercontroller::class,'update_cart']);
 Route::post('add-product',[productcontroller::class,'add_product']);
 Route::get('get-all-products',[productcontroller::class,'get_all_products']);

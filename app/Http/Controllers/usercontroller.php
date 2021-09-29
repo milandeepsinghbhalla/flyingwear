@@ -55,4 +55,13 @@ class usercontroller extends Controller
         $user->cart = json_encode($req->cart_contents);
         $user->save();
     }
+    public function update_filter_results(Request $req){
+        $user = user::find($req->uid);
+        $user->filters = $req->filters;
+        $user->save();
+    }
+    public function get_filters(Request $req){
+        $user = user::find($req->uid);
+        return ['filters'=>$user->filters];
+    }
 }

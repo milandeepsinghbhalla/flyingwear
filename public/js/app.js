@@ -69,6 +69,526 @@ Vue.http.options.emulateJSON = true;
 Vue.http.options.emulateHTTP = true;
 Vue.use(VueRouter);
 Vue.use(VueScrollTo);
+const new_product_main_card = {
+	template: `
+				<div class="col-lg-12 bg-dark crd-new-hrz">
+  		<div class="row">
+	  		<div class="col-5 col-md-4 p-0 mx-0">
+	  			<img :src="product.pimg" class="img-fill-new">
+	  		</div>
+	  			
+	  	
+	  		<div class="col-7 col-md-8  pt-3 pt-lg-4 mx-0">
+	  			
+	  			<h3 class="in-mob-text">{{product.pname}}</h3>
+	  			<h4 class="in-mob-text price">&#8377{{product.pprice}}</h4>
+	  			<h3 class="in-mob-text-sizes">{{product.psizes}}</h3>
+	  			<h3 class="in-mob-text-sizes">Colors : {{product.colors.length}}</h3>
+	  			<h3 class="in-mob-text-sizes">fabric : {{product.fabric}}</h3>
+	  			<span class="in-mob-text card-footer-horizontal">
+	  								
+										
+
+											<button data-toggle="modal"  v-on:click="detail_clicked(product)"class="btn orange btn-sm mr-1 in-mob-text-card">Details</button>
+											<span class="in-mob-text-sizes return-line">COD and return available</span>
+									
+									
+											
+									
+
+										
+										
+				</span>
+				
+				
+				
+	  		</div>
+  	   </div>
+  	   <div class="modal fade" v-bind:id="product.pid" tabindex="-1" v-bind:aria-labelledby="product.label_id" aria-hidden="true">
+  	   		 <div class="modal-dialog  modal-dialog-centered ">
+  	   		 	<div class="modal-content">
+  	   		 		<div class="modal-header">
+					      	   <h5 class="modal-title" v-bind:id="product.label_id">{{product.pname}}</h5>
+					        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					          <span aria-hidden="true">&times;</span>
+					        </button>
+					</div>
+					<div class="modal-body">
+					      	   <div class="container-fluid">
+					      	   		<div class="row">
+					      	   			 <div class="col-12">
+									      		<div :id="product.control" class="carousel slide" data-ride="carousel">
+												  <div class="carousel-inner">
+												    <div class="carousel-item active">
+												      <img v-bind:src="product.pimg" class="modal-img d-block w-100" >
+												    </div>
+												    <div v-for="image in product.images" class="carousel-item">
+												      <img v-bind:src="image" class="modal-img d-block w-100" >
+												    </div>
+												  </div>
+												  <a class="carousel-control-prev" :href="product.control_link" role="button" data-slide="prev">
+												    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+												    <span class="sr-only">Previous</span>
+												  </a>
+												  <a class="carousel-control-next" :href="product.control_link" role="button" data-slide="next">
+												    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+												    <span class="sr-only">Next</span>
+												  </a>
+												</div>
+									      </div>
+					      	   		</div>
+					      	   </div>
+					</div>
+					 <div class="modal-footer text-left">
+					 	<div style="width: 100%;">
+					 		<span class="font-weight-bolder">price : &#8377{{product.pprice}}</span> <span class="font-weight-bolder ml-2"> fabric : {{product.fabric}}</span>
+					 	</div>
+					 </div>
+           <div class="modal-footer text-left">
+            <div style="width: 100%;">
+                <span class="font-weight-bolder">Description</span>
+                <pre>{{product.description}}</pre>
+            </div>
+           </div>
+					 <div class="modal-footer">
+					 	<div class="form-inline" style="width: 100%;">
+					 		<label class="my-1 mr-2" for="inlineFormCustomSelectPref">Size : </label>
+							  <select v-model="product.size"  class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref">
+							    	<option disabled value="">Size</option>
+									<option v-for="size in product.sizes" v-if="check(product,size)">{{size}}</option>
+							  </select>
+
+							  <label class="my-1 mr-2 ml-2" for="inlineFormCustomSelectPref">color : </label>
+							  <select v-model="product.color"  class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref">
+							    	<option disabled value="">color</option>
+									<option v-for="color in product.colors">{{color}}</option>
+							  </select>
+
+							  <span v-if="can_add_to_cart[(product.pid)-1]">
+										<button class="btn mt-2 mt-md-0 btn-dark ml-2 btn-sm in-mob-text-card" v-on:click="add_to_cart(product.pid)" >Add to cart</button>
+										
+									</span>
+									<span v-else>
+								<button class="btn btn-danger mt-2 mt-md-0 ml-2 btn-sm disabled in-mob-text-card" v-on:click="add_to_cart(product.pid)">out of stock</button>
+									</span>
+					 		
+					 	</div>
+					 </div>
+  	   		 	</div>
+  	   		 </div>
+  	   </div>
+  	</div>
+	`,
+
+	props: ['product','can_add_to_cart','cart','items_in_cart','shirts','all_products'],
+
+	methods: {
+
+    check(product,size){
+      let str = 'stock_' + size.toLowerCase();
+      if(product[str]>0)
+        return true;
+      else
+        return false;
+    },
+		add_to_cart: function(bat_id){
+      if(this.product.size!==undefined && this.product.color!==undefined){
+        if(webstore.current_user.uid!==-1){
+            let i,no_of_items=0;
+            for(i=0;i<this.cart.length;i++){
+                if(this.cart[i].pid===bat_id)
+                  no_of_items++;
+            }
+          
+              const bat= this.all_products.find(element=>element.pid==bat_id);
+                      
+                      // let pro = this.shirts.find(element=>element.pid===bat_id);
+                      
+              if(bat.pstock>no_of_items){
+                          let o={
+                              pid: this.product.pid,
+                              size: this.product.size,
+                              color: this.product.color,
+                              cart_id: this.product.pid + '_' + this.product.size +'_' +this.product.color
+                          }
+                this.cart.push(o);
+
+                      }
+            localStorage.setItem('cb_cart',JSON.stringify(this.cart));
+            $(this.product.modal_id).modal('toggle');
+            swal("product added to cart"," ","success");
+
+        }
+        else{
+          swal("login first before adding to cart"," ","warning");
+        }
+      }
+      else
+        swal("color or size not seleted"," ","error");
+
+      
+
+				
+				
+
+		},
+		detail_clicked(product){
+			$(product.modal_id).modal('show')
+      jQuery(document).ready(function($) {
+
+        if (window.history && window.history.pushState) {
+
+          window.history.pushState('forward', null, './#forward');
+
+          $(window).on('popstate', function() {
+            if($(product.modal_id).data('bs.modal')?._isShown)
+            $(product.modal_id).modal('toggle')
+          });
+
+        }
+      });
+		}
+	}
+  // mounted(){
+  //   $('div.modal').on('shown', function(){
+  //         var id = $(this).attr('id');
+  //           jQuery(document).ready(function($) {
+
+  //             if (window.history && window.history.pushState) {
+
+  //               window.history.pushState('forward', null, './#forward');
+
+  //               $(window).on('popstate', function() {
+  //                 // if($(".modal").data('bs.modal'))
+  //                 //   $(this).modal('toggle');
+                  
+  //                 console.log(id);
+  //                       $('#'+id).modal('toggle');
+                    
+
+  //               });
+
+  //             }
+  //           });
+  //         });
+  // }
+}
+const show_filter_results = {
+  template:`
+    <div>
+      <div class="text-center">
+      <button class="btn btn-dark text-center mt-0 mb-4" style="margin-left:auto;margin-right:auto;">{{filter_results.length}} results found !!!</button>
+      </div>
+      <div class="row" v-for="product in filter_results" v-bind:key="product.pid + 'a'" style="text-align: left;margin: 0 auto;width:100%">
+						<div class="col-lg-8 p-0" style="text-align: left;margin: 0 auto">
+							<filter-result-card v-bind:product="product"
+											  v-bind:can_add_to_cart="can_add_to_cart"
+											  v-bind:cart="cart"
+											  v-bind:items_in_cart="items_in_cart"
+											  v-bind:filter_results="filter_results"
+											  v-bind:all_products="all_products"
+											  class="mb-4"
+											  ref="foo"
+											  
+							>
+											
+							</filter-result-card>
+						</div>
+		  </div>
+    </div>
+
+  `,
+  data:function(){
+    return {
+      filter_results: []
+    }
+  },
+  props:["current_user","can_add_to_cart","cart","items_in_cart","all_products"],
+  components:{
+    'filter-result-card': new_product_main_card
+  },
+  created(){
+    if(this.current_user.uid!=-1){
+      let obj={
+        uid: this.current_user.uid
+      }
+      this.$http.post("/api/get-filter-data",obj).then(res => {
+                console.log(res.body);
+                this.filter_results = JSON.parse(res.body.filters);
+      })
+    }
+  }
+}
+const filter_model = {
+//   <!-- Button trigger modal -->
+// <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#staticfiltermodel">
+//   Launch static backdrop modal
+// </button>
+
+  template:`
+      <div class="modal" id="staticfiltermodel" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="staticBackdropLabel">Apply Filters!!!</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <label class="my-1 mr-2 ml-2" for="niche">Select Niche : </label>
+							  <select v-model="filters.niche"  class="custom-select my-1 mr-sm-2" id="niche">
+							    	<option disabled value="">Select a Niche</option>
+									<option v-for="niche in filters.niches">{{niche}}</option>
+							  </select>
+                <div class="my-1 mr-2 ml-2 mt-2">select colors : </div>
+                  <span v-for="(color,i) in filters.colors" style="width:8em;display:inline-block;">
+                  <input  type="checkbox" :value=color @change="color_selected"></input><span class="filters-col-box" :style="{'background-color':color}"></span><span class="ml-1 mr-3">{{color}}</span>
+                  <br v-if="((i+1)%2===0)">
+                  </span>
+                  <div class="my-1 mr-2 ml-2 mt-2">select sizes : </div>
+                  <span v-for="(size,i) in filters.sizes" style="width:8em;display:inline-block;">
+                  <input type="checkbox" :value=size @change="size_selected"></input><span class="ml-1 mr-3 font-weight-bold">{{size}}</span>
+                  </span>
+                  <div class="my-1 mr-2 ml-2 mt-2">select price range : </div>
+                  <span v-for="(price,i) in filters.prices" style="width:8em;display:inline-block;">
+                  <input type="checkbox" :value=(i+1) @change="price_selected"></input><span class="ml-1 mr-3 font-weight-bold">{{price}}</span>
+                  </span>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-dark" @click="apply_filters">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  `,
+  data: function(){
+    return {
+      filters:{
+        niches:["shirts","round_necks","joggers"],
+        colors:["Blue","red","green","brown","black","grey","pink","yellow","crimson","orange","purple","white","chocolate"],
+        sizes: ["S","M","L","XL","2XL","3XL","4XL","5XL"],
+        prices: ["0 - 100","101 - 200","201 - 300","301 - 400","401 - 500","501 - 700","701 - 900","901 - 1100","1100 - 1500","1500 - 1900","1900 - 2300","2300+"]
+      },
+      scols: [],
+      ssizes: [],
+      sprices: [],
+      final_result: []
+    }
+  },
+  props:["all_products","shirts","round_necks","joggers"],
+  methods:{
+    price_selected(e){
+      if(this.sprices.includes(e.target.value)){
+        let index = this.sprices.indexOf(el=>{el==e.target.value});
+        this.sprices.splice(index,1);
+      }
+      else{
+        this.sprices.push(e.target.value);
+      }
+    },
+    size_selected(e){
+      if(this.ssizes.find(el=>el==e.target.value)){
+        let index = this.ssizes.indexOf(e.target.value);
+        this.ssizes.splice(index,1);
+      }
+      else{
+        this.ssizes.push(e.target.value);
+      }
+    },
+    color_selected(e){
+      console.log(e)
+      if(this.scols.find(el=>el==e.target.value)){
+          let el = this.scols.find(el=>el==e.target.value);
+          let index = this.scols.indexOf(el);
+          this.scols.splice(index,1);
+      }
+      else{
+        this.scols.push(e.target.value);
+      }
+    },
+    apply_filters(){
+      
+      if(this.filters.niche===undefined){
+        swal("select a niche like what you want T-shirt or shirt..."," ","warning");
+      }
+      else{
+        var f1 = [];
+        var f2 = [];
+        var f3=[];
+        if(this.scols.length>0){
+          
+
+          this[this.filters.niche].forEach(el => {
+              this.scols.forEach(element => {
+                if(element.toLowerCase() == el.colors[0].toLowerCase()){
+                  f1.push(el);
+                }
+              });
+          })
+          this.final_result = f1;
+        }
+        
+        if(this.ssizes.length>0){
+          
+          console.log(f1);
+          if(f1.length===0)
+            f1=this[this.filters.niche]
+          for(var m=0;m<f1.length;m++){
+            // el.sizes.every(function(ell){
+            //   this.ssizes.every(function(elll){
+            //     if(elll.toLowerCase()==ell.toLowerCase()&&chk===0){
+            //       f2.push(el);
+            //       return;
+            //     }
+            //   })
+            //   return;
+            // })
+            let s=[];
+            let x=0;
+            f1[m].sizes.forEach(el=>{
+              let str="stock_"+ el.toLowerCase();
+              if(f1[m][str]>0){
+                s[x]=el.toLowerCase();
+                x++;
+              }
+            })
+            console.log(s);
+            for(var i=0;i<s.length;i++){
+              for(var j=0;j<this.ssizes.length;j++){
+                if(this.ssizes[j].toLowerCase()==s[i].toLowerCase()){
+                  if(f2.includes(f1[m]))
+                    ;
+                  else
+                    f2.push(f1[m]);
+                }
+              }
+            }
+          }
+          this.final_result = f2;
+        }
+        if(this.sprices.length>0){
+          
+          let arr=[];
+          console.log(f2);
+          if(f1.length===0){
+            if(f2.length===0)
+              arr = this[this.filters.niche];
+            else
+              arr = f2;
+
+          }
+          else if(f2.length===0){
+            arr = f1;
+          }
+          else{
+            arr = f2;
+          }
+          for(var i=0;i<arr.length;i++){
+            for(var j=0;j<this.sprices.length;j++){
+              switch(parseInt(this.sprices[j])){
+                case 1:
+                  if(arr[i].pprice<=100){
+                    if(!(f3.includes(arr[i])))
+                      f3.push(arr[i]);
+                  }
+                  break;
+                  case 2:
+                    if(arr[i].pprice>100&&arr[i].pprice<=200){
+                      if(!(f3.includes(arr[i])))
+                        f3.push(arr[i]);
+                    }
+                    break;
+                  case 3:
+                      if(arr[i].pprice>200&&arr[i].pprice<=300){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                    case 4:
+                      if(arr[i].pprice>300&&arr[i].pprice<=400){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 5:
+                      if(arr[i].pprice>400&&arr[i].pprice<=500){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 6:
+                      if(arr[i].pprice>500&&arr[i].pprice<=700){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 7:
+                      if(arr[i].pprice>700&&arr[i].pprice<=900){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 8:
+                      if(arr[i].pprice>900&&arr[i].pprice<=1100){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 9:
+                      if(arr[i].pprice>1100&&arr[i].pprice<=1500){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 10:
+                      if(arr[i].pprice>1500&&arr[i].pprice<=1900){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 11:
+                      if(arr[i].pprice>1900&&arr[i].pprice<=2300){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+                  case 12:
+                      if(arr[i].pprice>2300){
+                        if(!(f3.includes(arr[i])))
+                          f3.push(arr[i]);
+                      }
+                      break;
+              }
+            }
+          }
+          this.final_result = f3;
+        }
+        if(this.ssizes.length===0&&this.scols.length===0&&this.sprices.length===0){
+          this.final_result = this[this.filters.niche];
+        }
+        if(webstore.current_user.uid!=-1){
+          let obj={
+            uid: webstore.current_user.uid,
+            filters: JSON.stringify(this.final_result)
+          }
+          console.log(obj);
+          this.$http.post("/api/filter",obj).then(res => {
+            $("#staticfiltermodel").modal('toggle');
+              location.assign("/#/filter-results");
+              location.reload();
+          })
+        }
+        else{
+          swal("Login for using filters !!!"," ","warning");
+        }
+      }
+       
+    }
+  }
+}
 
 const add_other_images = {
   template:`
@@ -487,7 +1007,7 @@ const upload_form_1 = {
         
         console.log(this.form1.pname)
         localStorage.setItem('form1',JSON.stringify(this.form1));
-        location.assign("flying#/dashboard/add-productsc");
+        location.assign("#/dashboard/add-productsc");
       }
       else{
         swal("enter all feilds"," ","error");
@@ -576,7 +1096,9 @@ const login_form = {
                                     webstore.current_user.name = res.body.name;
                                     webstore.current_user.number = res.body.number;
                                     webstore.current_user.w_number = res.body.w_number;
-                                    location.replace("/flyingwear#/");
+                                    console.log("in login!!!");
+                
+                                    location.replace("#/");
                                     location.reload();
                                     
                                     console.log(res.body);
@@ -677,7 +1199,7 @@ const sign_up_form = {
             </div>
             </div>
             <div class="button-parent">
-            <button type="submit" class="btn btn-md orange button mt-2" v-on:click="create_account()">Create Account</button>
+            <button type="button" class="btn btn-md orange button mt-2" v-on:click="create_account()">Create Account</button>
             </div>
 
     <div><p class="text-center text-peach pt-2">Already have an account ? <router-link class="text-info hover-white" to="/login">login</router-link></p></div>
@@ -700,7 +1222,7 @@ const sign_up_form = {
         var constraint=  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
         return (str.match(constraint))
       }
-      if(this.signform.name!='' && this.signform.email!='' && this.signform.code!='' &&this.signform.number!='' &&this.signform.password!='' &&this.signform.con_pass!=''){
+      if(this.signform.name!==undefined && this.signform.email!==undefined && this.signform.code!==undefined &&this.signform.number!==undefined &&this.signform.password!==undefined &&this.signform.con_pass!==undefined){
 
       if(this.signform.password===this.signform.con_pass && validateEmail(this.signform.email)){
         if(validate_pass(this.signform.password)){
@@ -718,15 +1240,15 @@ const sign_up_form = {
              this.$http.post("/api/add-user", user_data).then(res => {
                                      console.log(res.body);
                                      if(res.body.check_status==1){
-                                       swal(res.body.result,'','succsess');
-                                       location.replace("/flyingwear/login");
+                                       swal(res.body.result,' ','succsess');
+                                       location.replace("#/login");
                                        location.reload();
                                      }
                                      else if(res.body.check_status==0){
-                                       swal(res.body.result,'','warning');
+                                       swal(res.body.result,' ','warning');
                                      }
                                   });
-             console.log("i am here");
+             
              
         }
         else{
@@ -927,6 +1449,7 @@ const cart_card = {
              localStorage.setItem('cb_cart',JSON.stringify(this.cart));
         },
         add_to_cart: function(bat_id){
+          if(this.product.size!==undefined && this.product.color!==undefined){
            if(webstore.current_user.uid!==-1){ 
               let i,no_of_items=0;
               for(i=0;i<this.cart.length;i++){
@@ -953,6 +1476,9 @@ const cart_card = {
             else{
               swal("login first before adding to cart"," ","warning");
             }
+          }
+          else
+            swal("color or size not selectd !!!"," ","error");
 
                 
                 
@@ -964,7 +1490,7 @@ const cart_card = {
 
               if (window.history && window.history.pushState) {
 
-                window.history.pushState('forward', null, './flyingwear#/#forward');
+                window.history.pushState('forward', null, './#forward');
 
                 $(window).on('popstate', function() {
                   if($(product.modal_id).data('bs.modal')?._isShown)
@@ -978,206 +1504,7 @@ const cart_card = {
 
 }
 
-const new_product_main_card = {
-	template: `
-				<div class="col-lg-12 bg-dark crd-new-hrz">
-  		<div class="row">
-	  		<div class="col-5 col-md-4 p-0 mx-0">
-	  			<img :src="product.pimg" class="img-fill-new">
-	  		</div>
-	  			
-	  	
-	  		<div class="col-7 col-md-8  pt-3 pt-lg-4 mx-0">
-	  			
-	  			<h3 class="in-mob-text">{{product.pname}}</h3>
-	  			<h4 class="in-mob-text price">&#8377{{product.pprice}}</h4>
-	  			<h3 class="in-mob-text-sizes">{{product.psizes}}</h3>
-	  			<h3 class="in-mob-text-sizes">Colors : {{product.colors.length}}</h3>
-	  			<h3 class="in-mob-text-sizes">fabric : {{product.fabric}}</h3>
-	  			<span class="in-mob-text card-footer-horizontal">
-	  								
-										
 
-											<button data-toggle="modal"  v-on:click="detail_clicked(product)"class="btn orange btn-sm mr-1 in-mob-text-card">Details</button>
-											<span class="in-mob-text-sizes return-line">COD and return available</span>
-									
-									
-											
-									
-
-										
-										
-				</span>
-				
-				
-				
-	  		</div>
-  	   </div>
-  	   <div class="modal fade" v-bind:id="product.pid" tabindex="-1" v-bind:aria-labelledby="product.label_id" aria-hidden="true">
-  	   		 <div class="modal-dialog  modal-dialog-centered ">
-  	   		 	<div class="modal-content">
-  	   		 		<div class="modal-header">
-					      	   <h5 class="modal-title" v-bind:id="product.label_id">{{product.pname}}</h5>
-					        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					          <span aria-hidden="true">&times;</span>
-					        </button>
-					</div>
-					<div class="modal-body">
-					      	   <div class="container-fluid">
-					      	   		<div class="row">
-					      	   			 <div class="col-12">
-									      		<div :id="product.control" class="carousel slide" data-ride="carousel">
-												  <div class="carousel-inner">
-												    <div class="carousel-item active">
-												      <img v-bind:src="product.pimg" class="modal-img d-block w-100" >
-												    </div>
-												    <div v-for="image in product.images" class="carousel-item">
-												      <img v-bind:src="image" class="modal-img d-block w-100" >
-												    </div>
-												  </div>
-												  <a class="carousel-control-prev" :href="product.control_link" role="button" data-slide="prev">
-												    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-												    <span class="sr-only">Previous</span>
-												  </a>
-												  <a class="carousel-control-next" :href="product.control_link" role="button" data-slide="next">
-												    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-												    <span class="sr-only">Next</span>
-												  </a>
-												</div>
-									      </div>
-					      	   		</div>
-					      	   </div>
-					</div>
-					 <div class="modal-footer text-left">
-					 	<div style="width: 100%;">
-					 		<span class="font-weight-bolder">price : &#8377{{product.pprice}}</span> <span class="font-weight-bolder ml-2"> fabric : {{product.fabric}}</span>
-					 	</div>
-					 </div>
-           <div class="modal-footer text-left">
-            <div style="width: 100%;">
-                <span class="font-weight-bolder">Description</span>
-                <pre>{{product.description}}</pre>
-            </div>
-           </div>
-					 <div class="modal-footer">
-					 	<div class="form-inline" style="width: 100%;">
-					 		<label class="my-1 mr-2" for="inlineFormCustomSelectPref">Size : </label>
-							  <select v-model="product.size"  class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref">
-							    	<option disabled value="">Size</option>
-									<option v-for="size in product.sizes" v-if="check(product,size)">{{size}}</option>
-							  </select>
-
-							  <label class="my-1 mr-2 ml-2" for="inlineFormCustomSelectPref">color : </label>
-							  <select v-model="product.color"  class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref">
-							    	<option disabled value="">color</option>
-									<option v-for="color in product.colors">{{color}}</option>
-							  </select>
-
-							  <span v-if="can_add_to_cart[(product.pid)-1]">
-										<button class="btn mt-2 mt-md-0 btn-dark ml-2 btn-sm in-mob-text-card" v-on:click="add_to_cart(product.pid)" >Add to cart</button>
-										
-									</span>
-									<span v-else>
-								<button class="btn btn-danger mt-2 mt-md-0 ml-2 btn-sm disabled in-mob-text-card" v-on:click="add_to_cart(product.pid)">out of stock</button>
-									</span>
-					 		
-					 	</div>
-					 </div>
-  	   		 	</div>
-  	   		 </div>
-  	   </div>
-  	</div>
-	`,
-
-	props: ['product','can_add_to_cart','cart','items_in_cart','shirts','all_products'],
-
-	methods: {
-
-    check(product,size){
-      let str = 'stock_' + size.toLowerCase();
-      if(product[str]>0)
-        return true;
-      else
-        return false;
-    },
-		add_to_cart: function(bat_id){
-			if(webstore.current_user.uid!==-1){
-    			let i,no_of_items=0;
-    			for(i=0;i<this.cart.length;i++){
-    					if(this.cart[i].pid===bat_id)
-    						no_of_items++;
-    			}
-    		
-    				const bat= this.all_products.find(element=>element.pid==bat_id);
-                    
-                    // let pro = this.shirts.find(element=>element.pid===bat_id);
-                    
-    				if(bat.pstock>no_of_items){
-                        let o={
-                            pid: this.product.pid,
-                            size: this.product.size,
-                            color: this.product.color,
-                            cart_id: this.product.pid + '_' + this.product.size +'_' +this.product.color
-                        }
-    					this.cart.push(o);
-
-                    }
-          localStorage.setItem('cb_cart',JSON.stringify(this.cart));
-          $(this.product.modal_id).modal('toggle');
-          swal("product added to cart"," ","success");
-
-      }
-      else{
-        swal("login first before adding to cart"," ","warning");
-      }
-
-      
-
-				
-				
-
-		},
-		detail_clicked(product){
-			$(product.modal_id).modal('show')
-      jQuery(document).ready(function($) {
-
-        if (window.history && window.history.pushState) {
-
-          window.history.pushState('forward', null, './flyingwear#/#forward');
-
-          $(window).on('popstate', function() {
-            if($(product.modal_id).data('bs.modal')?._isShown)
-            $(product.modal_id).modal('toggle')
-          });
-
-        }
-      });
-		}
-	}
-  // mounted(){
-  //   $('div.modal').on('shown', function(){
-  //         var id = $(this).attr('id');
-  //           jQuery(document).ready(function($) {
-
-  //             if (window.history && window.history.pushState) {
-
-  //               window.history.pushState('forward', null, './#forward');
-
-  //               $(window).on('popstate', function() {
-  //                 // if($(".modal").data('bs.modal'))
-  //                 //   $(this).modal('toggle');
-                  
-  //                 console.log(id);
-  //                       $('#'+id).modal('toggle');
-                    
-
-  //               });
-
-  //             }
-  //           });
-  //         });
-  // }
-}
 const router = new VueRouter({
 	routes: [
 				{
@@ -1299,6 +1626,12 @@ const router = new VueRouter({
           components:{
             'cont-add-p': cont_add_p,
             'dash-list': dash_list
+          }
+        },
+        {
+          path: '/filter-results',
+          components:{
+            'show-filter-results': show_filter_results
           }
         }
 			]
@@ -1801,13 +2134,16 @@ const webstore=new Vue({
             let i;
             for(i=0;i<this.items_in_cart.length;i++){
                 total = total + (this.items_in_cart[i].pprice*this.items_in_cart[i].no_in_cart);
+                
             }
+            total = total.toFixed(2);
             return total;
         }
 
     },
     components: {
-    	'product-card': new_product_main_card
+    	'product-card': new_product_main_card,
+      'filter-model': filter_model
     },
     methods: {
       tab_closed(){
@@ -1855,7 +2191,7 @@ const webstore=new Vue({
        localStorage.removeItem('cb_uid');
        localStorage.removeItem('cb_w_number');
        localStorage.removeItem('cb_number');
-      location.replace("/flyingwear#/");
+      location.replace("#/login");
       location.reload();
      }
     }
