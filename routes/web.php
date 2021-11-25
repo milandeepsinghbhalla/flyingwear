@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/* Route::get('/', function () {
-    return view('welcome');
+ Route::get('/cust-form', function () {
+    return view('customer_form');
 });
- */
+ 
 Route::any('', function () {
     return view('flyingwear');
 });

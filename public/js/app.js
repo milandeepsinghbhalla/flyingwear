@@ -64,7 +64,11 @@
 
 Vue.use(VueResource);
 Vue.http.options.root = '/';
-Vue.http.headers.common['Authorization'] = 'Basic YXBpOnBhc3N3b3Jk';
+// Vue.http.headers.common['Authorization'] = 'Basic YXBpOnBhc3N3b3Jk';
+// Vue.http.headers.common['Access-Control-Allow-Origin'] = '*';
+// Vue.http.headers.common['Access-Control-Allow-Headers'] = '*';
+Vue.http.headers.common['Content-Type'] = 'application/json';
+
 Vue.http.options.emulateJSON = true;
 Vue.http.options.emulateHTTP = true;
 Vue.use(VueRouter);
@@ -276,7 +280,7 @@ const new_product_main_card = {
 const show_filter_results = {
   template:`
     <div>
-      <div class="text-center">
+      <div class="text-center" v-if="fetched==1">
       <button class="btn btn-dark text-center mt-0 mb-4" style="margin-left:auto;margin-right:auto;">{{filter_results.length}} results found !!!</button>
       </div>
       <div class="row" v-for="product in filter_results" v-bind:key="product.pid + 'a'" style="text-align: left;margin: 0 auto;width:100%">
@@ -300,21 +304,23 @@ const show_filter_results = {
   `,
   data:function(){
     return {
-      filter_results: []
+      filter_results: [],
+      fetched: 0
     }
   },
   props:["current_user","can_add_to_cart","cart","items_in_cart","all_products"],
   components:{
     'filter-result-card': new_product_main_card
   },
-  created(){
+  async created(){
     if(this.current_user.uid!=-1){
       let obj={
         uid: this.current_user.uid
       }
-      this.$http.post("/api/get-filter-data",obj).then(res => {
+      await this.$http.post("/api/get-filter-data",obj).then(res => {
                 console.log(res.body);
                 this.filter_results = JSON.parse(res.body.filters);
+                this.fetched = 1;
       })
     }
   }
@@ -577,8 +583,14 @@ const filter_model = {
           console.log(obj);
           this.$http.post("/api/filter",obj).then(res => {
             $("#staticfiltermodel").modal('toggle');
+            let loc = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+            if(loc!="filter-results")
+              location.assign("/#/filter-results");
+            else if(loc=="filter-results"){
               location.assign("/#/filter-results");
               location.reload();
+            }
+              window.scrollTo(0,0);
           })
         }
         else{
@@ -1046,8 +1058,10 @@ const login_form = {
                 <div class="input-group-prepend bg-img-yellow">
                     <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
                 </div>
-                <input type="password" class="form-control" v-model="login.password" placeholder="Password">
-
+                <input id="mp" type="password" class="form-control" v-model="login.password" placeholder="Password">
+                <div class="input-group-append bg-img-yellow" v-on:click="show_pass">
+                  <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-eye"></i></div>
+                </div>
             </div>
             </div>
             
@@ -1065,8 +1079,24 @@ const login_form = {
     </div>
         
   `,
+  data: function(){
+    return {
+      mp_clicked:0
+    }
+  },
   props: ['login'],
   methods: {
+    show_pass(e){
+      let inp =  document.getElementById('mp');
+      if(this.mp_clicked == 0){
+        this.mp_clicked=1;
+        inp.type = 'text';
+      }
+      else if(this.mp_clicked>0){
+        this.mp_clicked=0;
+        inp.type = 'password'
+      }
+    },
     login_webstore(){
       console.log("hi");
       function validateEmail(email) {
@@ -1184,8 +1214,10 @@ const sign_up_form = {
                 <div class="input-group-prepend bg-img-yellow">
                     <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
                 </div>
-                <input type="password" class="form-control" v-model.trim="signform.password" placeholder="Password">
-
+                <input id="mainpass" type="password" class="form-control" v-model.trim="signform.password" placeholder="Password">
+                <div class="input-group-append bg-img-yellow" v-on:click="show_pass">
+                  <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-eye"></i></div>
+                </div>
             </div>
             </div>
             
@@ -1195,7 +1227,10 @@ const sign_up_form = {
                 <div class="input-group-prepend bg-img-yellow">
                     <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
                 </div>
-                <input type="password" class="form-control" v-model.trim="signform.con_pass" placeholder="Confirm Password">
+                <input id="conp" type="password" class="form-control" v-model.trim="signform.con_pass" placeholder="Confirm Password">
+                <div class="input-group-append bg-img-yellow" v-on:click="show_pass_con">
+                  <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-eye"></i></div>
+                </div>
             </div>
             </div>
             <div class="button-parent">
@@ -1211,8 +1246,36 @@ const sign_up_form = {
       
 
   `,
+  data: function(){
+      return {
+        mp_clicked:0,
+        cp_clicked:0
+      }
+  },
   props: ['signform'],
   methods:{
+    show_pass_con(){
+      let inp =  document.getElementById('conp');
+      if(this.cp_clicked == 0){
+        this.cp_clicked=1;
+        inp.type = 'text';
+      }
+      else if(this.cp_clicked>0){
+        this.cp_clicked=0;
+        inp.type = 'password'
+      }
+    },
+    show_pass(e){
+      let inp =  document.getElementById('mainpass');
+      if(this.mp_clicked == 0){
+        this.mp_clicked=1;
+        inp.type = 'text';
+      }
+      else if(this.mp_clicked>0){
+        this.mp_clicked=0;
+        inp.type = 'password'
+      }
+    },
     create_account(){
       function validateEmail(email) {
           const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1277,12 +1340,18 @@ const total = {
     template:`
         <div class="row justify-content-center">
             <div class="col-lg-6 text-center">
-                <button v-if="total>0" class="btn btn-dark btn-lg">Total = &#8377{{total}} Proceed <i class="fas fa-thumbs-up"></i></button>
-                <button v-else class="btn btn-dark btn-lg">Cart is empty <i class="fas fa-frown-open"></i></button>
+            <router-link to="/customer-details" v-scroll-to="'#head'"><button v-show="total>0" class="btn btn-dark btn-lg">Total = &#8377{{total}} Proceed <i class="fas fa-thumbs-up"></i></button></router-link>
+                <button v-show="total==0" class="btn btn-dark btn-lg">Cart is empty <i class="fas fa-frown-open"></i></button>
             </div>
         </div>
     `,
-    props: ['total']
+    props: ['total'],
+    methods:{
+      to_customer_details(){
+        location.assign("/#/customer-details");
+        window.scrollTo(0,0);
+      }
+    }
 
 }
 const head_of_page ={
@@ -1306,7 +1375,7 @@ const cart_card = {
                 <h3 class="in-mob-text-sizes">Selected size: {{product.size}}</h3>
                 <h3 class="in-mob-text-sizes">selected color : {{product.color}}</h3>
                 <h3 class="in-mob-text-sizes">fabric : {{product.fabric}}</h3>
-                <h3 class="in-mob-text-sizes">&#8377{{product.pprice*product.no_in_cart}} for {{product.no_in_cart}}</h3>
+                <h3 class="in-mob-text-sizes">&#8377{{(product.pprice*product.no_in_cart).toFixed(2)}} for {{product.no_in_cart}}</h3>
 
                 <span class="in-mob-text card-footer-horizontal">
                                     
@@ -1503,7 +1572,497 @@ const cart_card = {
     }
 
 }
+const customer_details_form = {
+  template:`
+            <div class="container-fluid back-form">
+              <div class="loader-container" v-if="show_annimation==1">
+                <div class="loader"></div>
+              </div>
+            <div class="row justify-content-center " style="padding-top: 100px; padding-bottom: 50px">
+                <div class="col-lg-8 col-11 above  font-weight-bolder pt-3">
+                    <div class="text-center">
+                        <i class="fas fa-info-circle display-3"></i>
+                    </div>
+                    <h3 class="text-center">Customer Details</h3>
+                    <hr class="style-eight">
+                    <div class="text-justify pl-lg-3">
+                        Choose payment method :-<br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input form-control-this" type="radio" v-model.trim="customer_details.pay_method" id="p_cod" value="1">
+                            <label class="form-check-label" for="p_cod">COD</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input form-control-this" type="radio" v-model.trim="customer_details.pay_method" id="p_online" value="0">
+                            <label class="form-check-label" for="p_online">Online (prepaid)</label>
+                        </div>
+                        <div class="text-danger font-weight-bolder">[Choosing COD will charge extra COD charges on delivery]</div>
+                        <br>
+                        
+                        <div class="form-group">
+                            <label for="delivery-details">Check delivery charges & details :-</label><br>
+                            <input type="text" class="form-control form-control-this col-lg-4 col-6 d-inline" v-model.trom="customer_details.pincode" id="delivery-details" placeholder="Enter pincode">
+                            <button class="btn btn-dark ml-2" v-on:click="check_delivery_details">Check</button>
+                        </div>
 
+                        <div class="form-group">
+                            <label for="name">Customer First name :-</label><br>
+                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" v-model.trom="customer_details.name" id="name" placeholder="Enter First name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Customer Address :-</label><br>
+                            <textarea class="form-control form-control-this col-lg-8  d-inline" v-model.trom="customer_details.address" id="address" placeholder="Enter Full Address"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="landmark">Landmark :-</label><br>
+                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" v-model.trom="customer_details.landmark" id="landmark" placeholder="Enter Landmark">
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City :-</label><br>
+                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" v-model.trom="customer_details.city" id="city" placeholder="Enter City">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State :-</label>
+                            <select class="form-control form-control-this col-lg-4 col-8" v-model.trom="customer_details.state" id="state">
+                              <option selected disabled>select state</option>
+                              <option v-for="state in states">{{state}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email :-</label><br>
+                            <input type="email" class="form-control form-control-this col-lg-4 col-8 d-inline" v-model.trom="customer_details.email" id="email" placeholder="Enter email">
+                        </div>
+                        <div class="form-group">
+                            <label for="phn">Mobile No. :-</label><br>
+                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline"  v-model.trom="customer_details.phn" id="phn" placeholder="Enter Mobile No.">
+                        </div>
+                        <div class="form-group">
+                            <label for="alt_phn">Alternate No. :-</label><br>
+                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" v-model.trom="customer_details.alt_phn" id="alt_phn" placeholder="Enter Alternate No.">
+                        </div>
+                        <div class="text-center mb-4 mt-4">
+                        <button class="btn btn-md col-8  btn-dark" v-on:click="con_from_details">Continue</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal  fade" id="del_det_modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="del_staticBackdropLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="del_staticBackdropLabel">Delivery Charges & Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p v-if="is_del_available==0">Sorry we don't deliver to this pincode.</p>
+                    <p v-else><span style="width:8em;">Delivery date: </span> {{delivery_date}}<br>
+                              <span style="width:8em;">Delivery days: </span> {{delivery_days}}<br>
+                              <span v-if="cod_charges>0"><span style="width:8em;">COD charges:  </span>&#x20b9{{cod_charges}}<br></span>
+                              <span style="width:8em;">Total Delivery charge: </span> &#x20b9{{total_delivery_charge}}<br>
+                    </p>
+                    <p v-if="cod_charges>0">You can save &#x20b9{{cod_charges}} on delivery by selecting online(prepaid) payment method.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="closed_clicked">Close</button>
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+  `,
+  data: function(){
+    return {
+      customer_details:{
+        pay_method: '',
+        name: '',
+        pincode: '', 
+        address: '',
+        landmark: '',
+        city: '',
+        state: '',
+        email: '',
+        phn: '',
+        alt_phn: ''
+
+
+
+      },
+      states: ["Haryana","Punjab","Chandigarh","Himachal Pardesh","Delhi","Uttar Pardesh","Rajisthan","Maharashtra"],
+      status: 0,
+      tocken: "",
+      created_time: "",
+      delivery_date: "",
+      cod_charges: 0,
+      delivery_days: 0,
+      total_delivery_charge: 0,
+      is_del_available: 0,
+      courier_company_id: -1,
+      show_annimation: 0
+
+    }
+  },
+  props: ["weight"],
+  methods:{
+    
+    
+    async check_delivery_details(){
+      if(this.customer_details.pincode == null || this.customer_details.pincode =="" || this.customer_details.pay_method == null || this.customer_details.pay_method ==""){
+        swal("enter the pincode and payment method to check delivery details !!!"," ","error");
+      }
+      else{
+        this.show_annimation = 1;
+        this.$http.get("/api/get-ship-tocken").then(async (res) => {
+          if(res.body.status==0){
+            console.log(res.body);
+            let obj = {
+              email:"milansingh7696@gmail.com",
+              password:"Milansingh@1"
+            }
+            await this.$http.post("https://apiv2.shiprocket.in/v1/external/auth/login",obj).then(async (res)=>{
+              let obj2 = {
+                tocken: res.body.token,
+                created_time: res.body.created_at
+              }
+              this.$http.post("/api/add-ship-tocken", obj2).then(res =>{
+                console.log(res.body);
+                console.log("tocken added to database");
+              })
+              this.tocken = await res.body.token;
+              
+            })
+            
+            
+          }
+          else if(res.body.status==1){
+              this.tocken= await res.body.tocken;
+          }
+          let del_chk_details = {
+                pickup_postcode: 140603,
+                delivery_postcode: parseInt(this.customer_details.pincode),
+                cod: parseInt(this.customer_details.pay_method),
+                weight: Number(this.weight)
+              }
+          
+          let headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer '+ this.tocken
+          };
+          console.log(del_chk_details);
+          console.log(headers);
+          await this.$http.get("https://apiv2.shiprocket.in/v1/external/courier/serviceability/", {params: del_chk_details, headers:headers}).then(
+            res=>{
+              if(res.body.status !==404){
+              console.log(res.body);
+              console.log(res.body.data.available_courier_companies.length);
+              this.is_del_available = res.body.data.available_courier_companies.length;
+              if(this.is_del_available){
+                this.delivery_date = res.body.data.available_courier_companies[0].etd;
+                this.delivery_days = res.body.data.available_courier_companies[0].estimated_delivery_days;
+                this.cod_charges  = res.body.data.available_courier_companies[0].cod_charges;
+                this.total_delivery_charge = res.body.data.available_courier_companies[0].rate;
+                this.courier_company_id = res.body.data.available_courier_companies[0].courier_company_id;
+              }
+            }
+            else{
+              this.is_del_available = 0;
+            }
+            }
+          )
+          this.show_annimation = 0;
+          $('#del_det_modal').modal('show');
+          jQuery(document).ready(function($) {
+
+            if (window.history && window.history.pushState) {
+
+              window.history.pushState('forward', null, './#forward');
+
+              $(window).on('popstate', function() {
+                if($('#del_det_modal').data('bs.modal')?._isShown)
+                $('#del_det_modal').modal('toggle')
+              });
+
+            }
+          });
+        
+          
+          
+        });
+
+      }
+    },
+    closed_clicked(){
+      jQuery(document).ready(function($) {
+
+        if (window.history && window.history.pushState) {
+
+          window.history.pushState('forward', null, './#forward');
+
+          $(window).on('popstate', function() {
+            
+          });
+
+        }
+      });
+    },
+    async con_from_details(){
+      
+      function is_filled(cd){
+        console.log(cd);
+        for (let key in cd){
+          if(cd[key] === '' || cd[key] === null)
+            return 0;
+        }
+        return 1;
+        // if(cd.pay_method !== undefined && cd.pincode !== undefined && cd.name !== undefined && cd.address!== undefined && cd.landmark !== undefined && cd.city !== undefined && cd.state !== undefined && cd.email !==undefined && cd.phn !== undefined && cd.alt_phn !== undefined)
+        //   return 0;
+        // else
+        //   return 1;
+      }
+      console.log(is_filled(this.customer_details))
+      if(is_filled(this.customer_details)){
+        localStorage.setItem('customer_details',JSON.stringify(this.customer_details));
+        if(this.courier_company_id==-1){
+          this.show_annimation = 1;
+          this.$http.get("/api/get-ship-tocken").then(async (res) => {
+            if(res.body.status==0){
+              console.log(res.body);
+              let obj = {
+                email:"milansingh7696@gmail.com",
+                password:"Milansingh@1"
+              }
+              await this.$http.post("https://apiv2.shiprocket.in/v1/external/auth/login",obj).then(async (res)=>{
+                let obj2 = {
+                  tocken: res.body.token,
+                  created_time: res.body.created_at
+                }
+                this.$http.post("/api/add-ship-tocken", obj2).then(res =>{
+                  console.log(res.body);
+                  console.log("tocken added to database");
+                })
+                this.tocken = await res.body.token;
+                
+              })
+              
+              
+            }
+            else if(res.body.status==1){
+                this.tocken= await res.body.tocken;
+            }
+            let del_chk_details = {
+                  pickup_postcode: 140603,
+                  delivery_postcode: parseInt(this.customer_details.pincode),
+                  cod: parseInt(this.customer_details.pay_method),
+                  weight: Number(this.weight)
+                }
+            
+            let headers = {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer '+ this.tocken
+            };
+            console.log(del_chk_details);
+            console.log(headers);
+            await this.$http.get("https://apiv2.shiprocket.in/v1/external/courier/serviceability/", {params: del_chk_details, headers:headers}).then(
+              res=>{
+                if(res.body.status !==404){
+                console.log(res.body);
+                console.log(res.body.data.available_courier_companies.length);
+                this.is_del_available = res.body.data.available_courier_companies.length;
+                if(this.is_del_available){
+                  this.delivery_date = res.body.data.available_courier_companies[0].etd;
+                  this.delivery_days = res.body.data.available_courier_companies[0].estimated_delivery_days;
+                  this.cod_charges  = res.body.data.available_courier_companies[0].cod_charges;
+                  this.total_delivery_charge = res.body.data.available_courier_companies[0].rate;
+                  this.courier_company_id = res.body.data.available_courier_companies[0].courier_company_id;
+                  let delivery_details = {
+                    delivery_date: this.delivery_date,
+                    delivery_days: this.delivery_days,
+                    cod_charges: this.cod_charges,
+                    total_delivery_charge: this.total_delivery_charge,
+                    courier_company_id: this.courier_company_id
+                  }
+                  localStorage.setItem('delivery_details',JSON.stringify(delivery_details));
+                  this.show_annimation = 0;
+                  location.assign("/#/confirm-order");
+                }
+              }
+              else{
+                this.is_del_available = 0;
+              }
+              }
+          )});
+            }
+        else{
+          let delivery_details = {
+            delivery_date: this.delivery_date,
+            delivery_days: this.delivery_days,
+            cod_charges: this.cod_charges,
+            total_delivery_charge: this.total_delivery_charge,
+            courier_company_id: this.courier_company_id
+          }
+          localStorage.setItem('delivery_details',JSON.stringify(delivery_details));
+          location.assign("/#/confirm-order");
+        }
+      }
+      else{
+        swal("fill up all fields !!!"," ","error");
+      }
+    }
+  
+  },
+  mounted(){
+    window.scrollTo(0,0);
+  }
+}
+
+const confirm_order = {
+  template:`
+      <div class="container">
+        <div class="row justify-content-center mt-5">
+          <div class="card col-lg-8 col-11 p-0">
+           
+              <h5 class="card-header back-logo bg-dark font-weight-bold text-center">Order details</h5>
+              <div class="card-body pr-1 text-lg-center bg-order-card-body font-weight-bold">
+                <div v-for="product in items_in_cart">
+                <p class="card-text"><span class="text-left" style="width:13em;display:inline-block;">{{product.no_in_cart}} {{product.pname}} --</span><span> &#8377{{product.pprice*product.no_in_cart}}</span></p>
+                </div>
+                <div v-if="delivery_details.cod_charges>0">
+                <span class="card-text"><span class="text-left" style="width:13em;display:inline-block;">COD Charges --</span><span> &#8377{{delivery_details.cod_charges}}</span></span><br>
+                <span class="card-text text-dark">[You can save &#8377{{delivery_details.cod_charges}} COD Charges by choosing online mode of payment.]</span>
+                </div>
+                <p class="card-text"><span class="text-left" style="width:13em;display:inline-block;">Total Delivery Charges --</span><span> &#8377{{delivery_details.total_delivery_charge}}</span></p>
+                <p class="card-text order-total text-lg-justify mx-lg-5"><span class="text-left" style="width:4em;display:inline-block;">Total --</span><span> &#8377{{order_total}}</span></p>
+
+                
+            
+              </div>
+            
+          </div>
+        </div>
+        <div class="row justify-content-center mt-5">
+          <div class="card col-lg-8 col-11 p-0">
+           
+              <h5 class="card-header back-logo bg-dark font-weight-bold text-center">Delivery details</h5>
+              <div class="card-body  bg-order-card-body font-weight-bold">
+                <p class="card-text row"><span class="text-left col-lg-2 col-12 p-lg-0 pl-lg-2">Address :-</span><span class="col-lg-10 col-12 text-justify">{{customer_details.address}}</span><br>
+                
+                </p>
+                <p class="card-text row"><span class="col-lg-2 col-12 p-lg-0 pl-lg-2">Name :-</span> <span class="col-lg-10 col-12">{{customer_details.name}}</span></p>
+                <p class="card-text row"><span class="col-lg-2 col-12 p-lg-0 pl-lg-2">Delivery Date :-</span> <span class="col-lg-10 col-12">{{delivery_details.delivery_date}}</span></p>
+            
+              </div>
+            
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-10 col-lg-6 my-4">
+            <form id="payment_form" action='https://test.payu.in/_payment' method='post'>
+            <input type="hidden" name="key" v-model="pay.key" />
+            <input type="hidden" name="txnid" v-model="pay.txnid" />
+            <input type="hidden" name="productinfo" v-model="pay.pro_desc" />
+            <input type="hidden" name="amount" v-model="pay.amount" />
+            <input type="hidden" name="email" v-model="pay.email" />
+            <input type="hidden" name="firstname" v-model="pay.first_name" />
+            <input type="hidden" name="lastname" v-model="pay.last_name" />
+            <input type="hidden" name="surl" value="https://apiplayground-response.herokuapp.com/" />
+            <input type="hidden" name="furl" value="https://apiplayground-response.herokuapp.com/" />
+            <input type="hidden" name="phone" v-model="pay.phn" />
+            <input type="hidden" name="hash" v-model="pay.hash" />
+            <button class="btn btn-dark btn-lg btn-block"  v-if="customer_details.pay_method==0" v-on:click="pay_money">Pay &#8377{{order_total}}</button>
+            </form>
+            
+            <button class="btn btn-dark btn-lg btn-block"  v-if="customer_details.pay_method==1">Confirm Order</button>
+          </div>
+        </div>
+      </div>
+  `,
+  props: ['items_in_cart'],
+  data: function(){
+    return {
+      customer_details:{},
+      delivery_details:{},
+      pay:{}
+    }
+  },
+  computed:{
+    order_total(){
+      let pro_tot = 0
+      for(let i=0;i<this.items_in_cart.length;i++){
+        pro_tot += this.items_in_cart[i].pprice*this.items_in_cart[i].no_in_cart;
+      }
+      let ord_tot = pro_tot + this.delivery_details.total_delivery_charge;
+      return ord_tot.toFixed(2);
+    }
+  },
+  methods:{
+    pay_money(e){
+      e.preventDefault();
+
+      let obj = {
+        order_id: webstore.current_user.uid + "_" + Date.now(),
+        call_back_url: window.location.href,
+        amount: this.order_total+'',
+        cust_id: webstore.current_user.uid+''
+      }
+      this.$http.post("/api/initialize-transaction", obj).then(res =>{
+          console.log(res.body)
+          let url = "https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid=KqVDCA97132325772368&orderId=" + res.body.body.orderId
+          console.log(url)
+          this.$http.post(url,JSON.stringify(res.body)).then(res2 =>{
+            console.log(res2.body)
+          })
+      })
+      // this.pay.key = "PEOPA8Hx";
+      // this.pay.txnid = webstore.current_user.uid + "_" + Date.now();
+      // if(this.items_in_cart.length==1){
+      //     this,pay.pro_desc = ""+ this.items_in_cart[0].pname;
+      // }
+      // else{
+      //   this.pay.pro_desc = ""+ this.items_in_cart[0].pname + " and others";
+      // }
+      // this.pay.amount = parseFloat(this.order_total);
+      // this.pay.email = this.customer_details.email;
+      // this.pay.first_name = this.customer_details.name.split(' ')[0];
+      // this.pay.last_name = this.customer_details.name.substr(this.customer_details.name.indexOf(' ')+1)
+      // this.pay.phn = parseInt(this.customer_details.phn);
+      // let salt  = "7nGbdiDMSs";
+      // let real_str = this.pay.key+"|"+this.pay.txnid+"|"+this.pay.amount+"|"+this.pay.pro_desc+"|"+this.pay.first_name+"|"+this.pay.email+"|||||||||||"+salt
+      // // function sha512(str) {
+      // //   return crypto.subtle.digest("SHA-512", new TextEncoder("utf-8").encode(str)).then(buf => {
+      // //     return Array.prototype.map.call(new Uint8Array(buf), x=>(('00'+x.toString(16)).slice(-2))).join('');
+      // //   });
+      // // }
+      
+      // // sha512(real_str).then(x => this.pay.hash = x);
+      // let obj = {
+      //   realstr: real_str
+      // }
+      // this.$http.post("/api/send-sha512", obj).then(res =>{
+      //     this.pay.hash = res.body;
+      //     document.getElementsByName("key")[0].value = this.pay.key;
+      //     document.getElementsByName("txnid")[0].value = this.pay.txnid;
+      //     document.getElementsByName("productinfo")[0].value = this.pay.pro_desc;
+      //     document.getElementsByName("amount")[0].value = this.pay.amount;
+      //     document.getElementsByName("email")[0].value = this.pay.email;
+      //     document.getElementsByName("firstname")[0].value = this.pay.first_name;
+      //     document.getElementsByName("lastname")[0].value = this.pay.last_name;
+      //     document.getElementsByName("phone")[0].value = this.pay.phn;
+      //     document.getElementsByName("hash")[0].value = this.pay.hash;
+
+      //     document.getElementById("payment_form").submit();
+      // })
+    }
+  },
+  created(){
+    if(localStorage.getItem('customer_details') && localStorage.getItem('delivery_details')){
+      this.customer_details = JSON.parse(localStorage.getItem('customer_details'));
+      this.delivery_details = JSON.parse(localStorage.getItem('delivery_details'));
+    }
+  }
+}
 
 const router = new VueRouter({
 	routes: [
@@ -1633,6 +2192,19 @@ const router = new VueRouter({
           components:{
             'show-filter-results': show_filter_results
           }
+        },
+        {
+          path: '/customer-details',
+          components:{
+            'customer-details-form': customer_details_form,
+            'head': head_of_page
+          }
+        },
+        {
+          path: '/confirm-order',
+          components:{
+            'confirm-order': confirm_order
+          }
         }
 			]
 });
@@ -1642,7 +2214,8 @@ const webstore=new Vue({
             emulateHTTP: true,
             root: '/',
     		headers: {
-			      Authorization: 'Basic YXBpOnBhc3N3b3Jk'
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*'
 			    }
     },
     router: router,
@@ -1852,6 +2425,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -1875,6 +2449,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -1898,6 +2473,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -1921,6 +2497,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -1944,6 +2521,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -1967,6 +2545,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -1990,6 +2569,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -2013,6 +2593,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -2036,6 +2617,7 @@ const webstore=new Vue({
           for(let i=0;i<length;i++){
             result[i].pid = parseInt(result[i].pid);
             result[i].pprice = parseFloat(result[i].pprice);
+            result[i].pweight = Number(result[i].pweight);
             result[i].pstock = parseInt(result[i].pstock);
             result[i].stock_s =  parseInt(result[i].stock_s);
             result[i].stock_m =  parseInt(result[i].stock_m);
@@ -2110,6 +2692,7 @@ const webstore=new Vue({
                           o.pimg= the_product.pimg
                           o.psizes= the_product.psizes
                           o.pprice= the_product.pprice
+                          o.pweight= the_product.pweight
                           o.pstock= the_product.pstock
                           o.colors= the_product.colors
                           o.fabric= the_product.fabric
@@ -2138,6 +2721,16 @@ const webstore=new Vue({
             }
             total = total.toFixed(2);
             return total;
+        },
+        weight(){
+          let weight = 0;
+          let i;
+            for(i=0;i<this.items_in_cart.length;i++){
+                weight = weight + (this.items_in_cart[i].pweight*this.items_in_cart[i].no_in_cart);
+                
+            }
+            weight = weight.toFixed(2);
+            return weight;
         }
 
     },

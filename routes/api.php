@@ -4,6 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\usercontroller;
 use App\Http\Controllers\productcontroller;
+use App\Http\Controllers\shiprocketController;
+use App\Http\Controllers\paytmCheckoutController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -35,3 +39,12 @@ Route::get('get-kurtas',[productcontroller::class,'get_kurtas']);
 Route::get('get-joggers',[productcontroller::class,'get_joggers']);
 Route::get('get-jeans',[productcontroller::class,'get_jeans']);
 Route::get('get-caperies',[productcontroller::class,'get_caperies']);
+/*below are routes for shiprocket api*/
+Route::get('get-ship-tocken',[shiprocketController::class,'get_tocken']);
+Route::post('add-ship-tocken',[shiprocketController::class,'add_tocken']);
+Route::post('initialize-transaction',[paytmCheckoutController::class,'initialize_transaction']);
+
+Route::post('send-sha512',function(Request $req){
+    $sha512_hash = hash("sha512", $req->realstr);
+    return $sha512_hash;
+});
