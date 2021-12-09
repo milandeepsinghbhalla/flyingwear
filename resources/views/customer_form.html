@@ -3,116 +3,30 @@
     <head>    
     
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        
-        <link href="css/app.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="/resources/css/bootstrap.css">
         <script src="https://kit.fontawesome.com/16139588c8.js" crossorigin="anonymous"></script>
         <style>
-            .back-form{
-                background-image: url("storage/bg-form.jpg");
-                background-size: 100% 100%;
-                height: auto;
-                
-            }
-            .above{
-                background: rgb(255, 255, 255) transparent;
-			    background: rgba(255, 255, 255, 0.75);
-            }
-            hr.style-eight {
-                overflow: visible;
-                padding: 0;
-                border: none;
-                border-top: medium double #333;
-                color: #333;
-                text-align: center;
-            }
-            hr.style-eight:after {
-                content: "§";
-                display: inline-block;
-                position: relative;
-                top: -0.7em;
-                font-size: 1.5em;
-                padding: 0 0.25em;
-                /* background: white; */
-            }
-            .form-control-this{
-                border: 1px solid #333;
+            .back-img-round-neck{
+                background-image: url("/storage/app/public/home_banners/tshirt_banner.jpg");
+                background-size: cover;
+                height: 30em;
             }
         </style>
     </head>
-    <body>
-        <div class="container-fluid back-form">
-            <div class="row justify-content-center py-5">
-                <div class="col-lg-8 col-11 above  font-weight-bolder pt-3">
-                    <div class="text-center">
-                        <i class="fas fa-info-circle display-3"></i>
-                    </div>
-                    <h3 class="text-center">Customer Details</h3>
-                    <hr class="style-eight">
-                    <div class="text-justify pl-lg-3">
-                        Choose payment method :-<br>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input form-control-this" type="radio" name="pay_method" id="p_cod" value="cod">
-                            <label class="form-check-label" for="p_cod">COD</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input form-control-this" type="radio" name="pay_method" id="p_online" value="online">
-                            <label class="form-check-label" for="p_online">Online (prepaid)</label>
-                        </div>
-                        <div class="text-danger font-weight-bolder">[Choosing COD will charge extra COD charges on delivery]</div>
-                        <br>
-                        
-                        <div class="form-group">
-                            <label for="delivery-details">Check delivery charges & details :-</label><br>
-                            <input type="text" class="form-control form-control-this col-lg-4 col-6 d-inline" id="delivery-details" placeholder="Enter pincode">
-                            <button class="btn btn-dark ml-2">Check</button>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="name">Customer First name :-</label><br>
-                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" id="name" placeholder="Enter First name">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="name">Customer Address :-</label><br>
-                            <textarea class="form-control form-control-this col-lg-8  d-inline" id="name" placeholder="Enter Full Address"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="landmark">Landmark :-</label><br>
-                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" id="landmark" placeholder="Enter Landmark">
-                        </div>
-                        <div class="form-group">
-                            <label for="city">City :-</label><br>
-                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" id="city" placeholder="Enter City">
-                        </div>
-                        <div class="form-group">
-                            <label for="state">State :-</label>
-                            <select class="form-control form-control-this col-lg-4 col-8" id="state">
-                              <option selected disabled>select state</option>
-                              <option>2</option>
-                              <option>3</option>
-                              <option>4</option>
-                              <option>5</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email :-</label><br>
-                            <input type="email" class="form-control form-control-this col-lg-4 col-8 d-inline" id="email" placeholder="Enter email">
-                        </div>
-                        <div class="form-group">
-                            <label for="phn">Mobile No. :-</label><br>
-                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" id="phn" placeholder="Enter Mobile No.">
-                        </div>
-                        <div class="form-group">
-                            <label for="alt_phn">Alternate No. :-</label><br>
-                            <input type="text" class="form-control form-control-this col-lg-4 col-8 d-inline" id="alt_phn" placeholder="Enter Alternate No.">
-                        </div>
-                        <div class="text-center mb-4 mt-4">
-                        <button class="btn btn-md col-8  btn-dark">Continue</button>
-                        </div>
-                    </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-10 col-12 back-img-round-neck">
 
                 </div>
             </div>
         </div>
+    <body>
+
+
+
+
+        <script type="text/javascript" src="/resources/js/jquery.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="/resources/js/bootstrap.js"></script> 
     </body>
 </html>

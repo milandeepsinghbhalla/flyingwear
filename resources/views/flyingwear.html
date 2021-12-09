@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>clothbranch | clothes directly from factory</title>
+	<title>Flyingwear | clothes directly from factory</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous"> -->
 
@@ -258,11 +258,90 @@
     		padding-top: 0.6em;
     		margin-right: 1em;
 		}
+		.orders-border{
+			border: 5px solid #FFBD59 ;
+		}
+
+		/* css below for home page*/
+		.back-img-round-neck{
+                background-image: url("storage/home_banners/tshirt_banner.webp");
+                background-size: 100% 100%;
+                height: 16em;
+				background-repeat: no-repeat;
+
+        }
+		.back{
+			background-size: 100% 100%;
+			height: 16em;
+			background-repeat: no-repeat;
+		}
+		.back-img-polo{
+			background-image: url("storage/home_banners/polo_banner.jpeg");
+		}
+		.back-img-shirts{
+			background-image: url("storage/home_banners/shirts_banner.jpeg");
+
+		}
+		.back-img-sweatshirts{
+			background-image: url("storage/home_banners/sweatshirt_banner.jpg");
+
+		}
+		.back-img-Kurtas{
+			background-image: url("storage/home_banners/Kurtas_banner.jpg");
+
+		}
+		.back-img-Jeans{
+			background-image: url("storage/home_banners/Jeans_banner.jpg");
+
+		}
+		.back-img-Joggers{
+			background-image: url("storage/home_banners/Joggers_banner.jpg");
+
+		}
+		
+	
+		.button-position{
+			position: absolute;
+    		bottom: 1.5em;
+    		right: 20em;
+		}
+		@media screen and (max-width: 383px){
+			.button-position{
+				right: 125px !important;
+			}
+		}
+		@media screen and (max-width: 668px){
+			.button-position{
+				right: 14em;
+			}
+			
+			.disp-main-home{
+			font-size: 1.2em;
+			}
+		}
+		@media screen and (min-width: 669px){
+			
+			.disp-main-home{
+			font-size: 2.2em;
+		}
+		}
+		.home-para-main{
+			background: #FFCC80;
+		}
+		.bg-main-button{
+			background: #DA70D6;
+			border-radius: 50px
+		}
+		
+		
 	</style>
 </head>
 <body>
+	
 
 <div id="app">
+
+
 	<router-view name="head"></router-view>
 	<nav id="my_nav" class="navbar navbar-expand-lg navbar-dark bg-dark py-0 fixed-top" >
 		 <a class="navbar-brand" href="#"><img src="storage/logo.png" id="logo"></a>
@@ -348,7 +427,12 @@
 				<li class="nav-item cart-ul-laptop">
 			       <router-link class="nav-link" to="/cart"><i class="fas fa-shopping-cart"><sup class="sup-no">{{cart.length}}</sup></i></router-link>
 			    </li>
-
+				<li class="nav-item">
+					<router-link class="nav-link" v-if="current_user.uid!=-1" to="/orders" data-toggle="collapse" data-target="#navbarSupportedContent">Orders</router-link>
+				</li>
+				<li class="nav-item">
+					<router-link class="nav-link" v-if="current_user.uid==1" to="/dashboard" data-toggle="collapse" data-target="#navbarSupportedContent">Dashboard</router-link>
+				</li>
 			    <li class="nav-item dropdown" v-if="current_user.uid===-1">
 			        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			          login / sign up
@@ -362,7 +446,7 @@
 			    <li v-else class="nav-item">
 			    	<a href="#" v-on:click="logout()" class="nav-link" data-toggle="collapse" data-target="#navbarSupportedContent">Logout</a>
 			    </li>
-
+				
 			    <!-- <li class="nav-item">
 			      <router-link class="nav-link" to="/" data-toggle="collapse" data-target="#navbarSupportedContent">About</router-link>
 		   	 	</li> -->
@@ -372,12 +456,21 @@
 			</ul>
 	 	  </div>
 	</nav>
+	
 	<filter-model :all_products="all_products"
 				  :shirts="shirts"
 				  :round_necks="round_necks"
-				  :joggers="joggers"></filter-model>
+				  :joggers="joggers"
+				  :polos="polos"
+				  :sweat_shirts="sweat_shirts"
+				  :kurtas="kurtas"
+				  :jeans="jeans"
+				  :caperies="caperies"
+				  :shorts="shorts"></filter-model>
 		
 	<div class="container-fluid" style="margin-top: 7em;">
+
+		<router-view name="home"></router-view>
 
 		<router-view name="show-filter-results" v-bind:can_add_to_cart="can_add_to_cart"
 												v-bind:cart="cart"
@@ -563,7 +656,8 @@
 			</div>
 		</div>
 	<router-view name="customer-details-form" :weight="weight"></router-view>
-	<router-view name="confirm-order" v-bind:items_in_cart = "items_in_cart"></router-view>
+	<router-view name="confirm-order" v-bind:items_in_cart = "items_in_cart" v-bind:weight = "weight"></router-view>
+	<router-view name="user-orders" v-bind:current_user = "current_user"></router-view>
 	</div>
 	
 	
@@ -578,7 +672,7 @@
 
 
 
-
+<script type="application/javascript" crossorigin="anonymous" src="https://securegw-stage.paytm.in/merchantpgpui/checkoutjs/merchants/KqVDCA97132325772368.js"> </script>
 <script src="js/jquery.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous" defer></script>
 

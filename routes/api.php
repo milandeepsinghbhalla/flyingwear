@@ -42,7 +42,10 @@ Route::get('get-caperies',[productcontroller::class,'get_caperies']);
 /*below are routes for shiprocket api*/
 Route::get('get-ship-tocken',[shiprocketController::class,'get_tocken']);
 Route::post('add-ship-tocken',[shiprocketController::class,'add_tocken']);
-Route::post('initialize-transaction',[paytmCheckoutController::class,'initialize_transaction']);
+Route::post('create-payment-order',[paytmCheckoutController::class,'create_payment_order']);
+Route::post('create-order',[paytmCheckoutController::class,'create_order']);
+Route::post('get-orders',[usercontroller::class,'get_orders']);
+Route::post('update-user-orders',[usercontroller::class,'update_user_orders']);
 
 Route::post('send-sha512',function(Request $req){
     $sha512_hash = hash("sha512", $req->realstr);

@@ -64,4 +64,33 @@ class usercontroller extends Controller
         $user = user::find($req->uid);
         return ['filters'=>$user->filters];
     }
+    public function get_orders(Request $req){
+        $user = user::find($req->uid);
+        if($user->orders != NULL)
+            return ['status'=>1,'orders'=>$user->orders];
+        else
+            return ['status'=>0];
+    }
+    public function update_user_orders(Request $req){
+        $user = user::find($req->uid);
+        if($user->orders == Null){
+            $new_orders = array();
+            array_push($new_orders,$req->order);
+            $new_orders = json_encode($new_orders);
+            $user->orders = $new_orders;
+            $user->save();
+            return ["status"=>1,"message"=>"order confirmed"];
+        }
+        else{
+            $old_orders = str_replace("\n", ' ',$user->orders);
+            $old_orders = json_decode($old_orders);
+            
+            
+            array_push($old_orders,$req->order);
+            $new_orders = json_encode($old_orders);
+            $user->orders = $new_orders;
+            $user->save();
+            return ["status"=>1,"message"=>"order confirmed"];
+        }
+    }
 }

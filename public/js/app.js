@@ -252,7 +252,8 @@ const new_product_main_card = {
         }
       });
 		}
-	}
+	},
+  
   // mounted(){
   //   $('div.modal').on('shown', function(){
   //         var id = $(this).attr('id');
@@ -373,7 +374,7 @@ const filter_model = {
   data: function(){
     return {
       filters:{
-        niches:["shirts","round_necks","joggers"],
+        niches:["shirts","round_necks","joggers","polos","sweat_shirts","kurtas","jeans","caperies","shorts"],
         colors:["Blue","red","green","brown","black","grey","pink","yellow","crimson","orange","purple","white","chocolate"],
         sizes: ["S","M","L","XL","2XL","3XL","4XL","5XL"],
         prices: ["0 - 100","101 - 200","201 - 300","301 - 400","401 - 500","501 - 700","701 - 900","901 - 1100","1100 - 1500","1500 - 1900","1900 - 2300","2300+"]
@@ -384,7 +385,7 @@ const filter_model = {
       final_result: []
     }
   },
-  props:["all_products","shirts","round_necks","joggers"],
+  props:["all_products","shirts","round_necks","joggers","polos","sweat_shirts","kurtas","jeans","caperies","shorts"],
   methods:{
     price_selected(e){
       if(this.sprices.includes(e.target.value)){
@@ -1338,7 +1339,7 @@ const sign_up_form = {
 
 const total = {
     template:`
-        <div class="row justify-content-center">
+        <div class="row justify-content-center mb-5 pb-5">
             <div class="col-lg-6 text-center">
             <router-link to="/customer-details" v-scroll-to="'#head'"><button v-show="total>0" class="btn btn-dark btn-lg">Total = &#8377{{total}} Proceed <i class="fas fa-thumbs-up"></i></button></router-link>
                 <button v-show="total==0" class="btn btn-dark btn-lg">Cart is empty <i class="fas fa-frown-open"></i></button>
@@ -1666,7 +1667,7 @@ const customer_details_form = {
                     <p v-if="cod_charges>0">You can save &#x20b9{{cod_charges}} on delivery by selecting online(prepaid) payment method.</p>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="closed_clicked">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" >Close</button>
                     
                   </div>
                 </div>
@@ -1778,7 +1779,7 @@ const customer_details_form = {
 
             if (window.history && window.history.pushState) {
 
-              window.history.pushState('forward', null, './#forward');
+              window.history.pushState('forward', null, './#/customer-details');
 
               $(window).on('popstate', function() {
                 if($('#del_det_modal').data('bs.modal')?._isShown)
@@ -1794,20 +1795,20 @@ const customer_details_form = {
 
       }
     },
-    closed_clicked(){
-      jQuery(document).ready(function($) {
+    // closed_clicked(){
+    //   jQuery(document).ready(function($) {
 
-        if (window.history && window.history.pushState) {
+    //     // if (window.history && window.history.pushState) {
 
-          window.history.pushState('forward', null, './#forward');
-
-          $(window).on('popstate', function() {
+    //       window.history.back();
+    //       window.history.back();
+    //       $(window).on('popstate', function() {
             
-          });
+    //       });
 
-        }
-      });
-    },
+    //     // }
+    //   });
+    // },
     async con_from_details(){
       
       function is_filled(cd){
@@ -1825,7 +1826,7 @@ const customer_details_form = {
       console.log(is_filled(this.customer_details))
       if(is_filled(this.customer_details)){
         localStorage.setItem('customer_details',JSON.stringify(this.customer_details));
-        if(this.courier_company_id==-1){
+        if(1){
           this.show_annimation = 1;
           this.$http.get("/api/get-ship-tocken").then(async (res) => {
             if(res.body.status==0){
@@ -1915,6 +1916,10 @@ const customer_details_form = {
   },
   mounted(){
     window.scrollTo(0,0);
+  },
+  created(){
+    if(localStorage.getItem('customer_details'))
+    this.customer_details = JSON.parse(localStorage.getItem("customer_details"));
   }
 }
 
@@ -1974,12 +1979,12 @@ const confirm_order = {
             <button class="btn btn-dark btn-lg btn-block"  v-if="customer_details.pay_method==0" v-on:click="pay_money">Pay &#8377{{order_total}}</button>
             </form>
             
-            <button class="btn btn-dark btn-lg btn-block"  v-if="customer_details.pay_method==1">Confirm Order</button>
+            <button class="btn btn-dark btn-lg btn-block"  v-if="customer_details.pay_method==1" v-on:click="confirm_order">Confirm Order</button>
           </div>
         </div>
       </div>
   `,
-  props: ['items_in_cart'],
+  props: ['items_in_cart','weight'],
   data: function(){
     return {
       customer_details:{},
@@ -1998,23 +2003,180 @@ const confirm_order = {
     }
   },
   methods:{
+    confirm_order(){
+      
+      
+      let ob = {
+            order_id:  webstore.current_user.uid + "_" + Date.now(),
+            cart_contents: this.items_in_cart,
+            delivery_details: JSON.parse(localStorage.getItem('delivery_details')),
+            customer_details: JSON.parse(localStorage.getItem('customer_details')),
+            order_status: "confirmed",
+            total: this.order_total,
+            total_weight: this.weight
+      }
+      let order_data = {
+            order_id:  webstore.current_user.uid + "_" + Date.now(),
+            customer_id: webstore.current_user.uid,
+            order_contents: JSON.stringify(ob),
+            order_status: "confirmed" 
+      }
+      let sent_data = {
+        uid: webstore.current_user.uid,
+        order: ob
+      }
+      this.$http.post("/api/create-order", order_data).then(res2 =>{
+        console.log(res2.body);
+        if(res2.body.status ==1){
+          this.$http.post("/api/update-user-orders", sent_data).then(res=>{
+            console.log(res.body);
+            if(res.body.status==1){
+              let empty_cart = [];
+    
+              let cart_update = {
+                uid : parseInt(localStorage.getItem('cb_uid')),
+                cart_contents : empty_cart
+              };
+            
+              localStorage.removeItem('cb_cart');
+              
+              this.$http.post("/api/update-cart", cart_update).then(result => {
+                                        console.log(result.body);
+                                        
+                                      });
+              swal("order confirmed !!!"," ","success");
+              location.replace("/#/orders");
+            }
+            else{
+              swal(res.body.message," ","error");
+            }
+          })
+        }
+        else{
+          swal(res2.body.message," ","error");
+        }
+      })
+    },
     pay_money(e){
       e.preventDefault();
-
+      let empty_cart = [];
+    
+      let cart_update = {
+        uid : parseInt(localStorage.getItem('cb_uid')),
+        cart_contents : empty_cart
+       };
+     
+      localStorage.removeItem('cb_cart');
+       
+     this.$http.post("/api/update-cart", cart_update).then(res => {
+                                console.log(res.body);
+                                
+                               });
+      let index = window.location.href.lastIndexOf('/') - 2;
+      let link = window.location.href.substr(0,index);
+      link = link + "/after-payment?cf_id={order_id}&cf_token={order_token}";
+      
       let obj = {
         order_id: webstore.current_user.uid + "_" + Date.now(),
-        call_back_url: window.location.href,
-        amount: this.order_total+'',
-        cust_id: webstore.current_user.uid+''
+        order_amount: this.order_total,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: webstore.current_user.uid,
+          customer_email: this.customer_details.email,
+          customer_phone: this.customer_details.phn
+        },
+        order_meta:{
+          return_url: link
+        }
       }
-      this.$http.post("/api/initialize-transaction", obj).then(res =>{
-          console.log(res.body)
-          let url = "https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid=KqVDCA97132325772368&orderId=" + res.body.body.orderId
-          console.log(url)
-          this.$http.post(url,JSON.stringify(res.body)).then(res2 =>{
-            console.log(res2.body)
+      this.$http.post("/api/create-payment-order", obj).then(res =>{
+        
+        if(res.body.payment_link){
+          let ob = {
+            order_id: obj.order_id,
+            cart_contents: this.items_in_cart,
+            delivery_details: JSON.parse(localStorage.getItem('delivery_details')),
+            customer_details: JSON.parse(localStorage.getItem('customer_details')),
+            order_status: "unpaid",
+            total: this.order_total,
+            total_weight: this.weight
+          }
+          let order_data = {
+            order_id: obj.order_id,
+            customer_id: webstore.current_user.uid,
+            order_contents: JSON.stringify(ob),
+            order_status: "unpaid" 
+          }
+          console.log(order_data);
+          this.$http.post("/api/create-order", order_data).then(res2 =>{
+            console.log(res2.body);
+            if(res2.body.status ==1){
+              location.assign(res.body.payment_link);
+            }
+            else{
+              swal(res2.body.message," ","error");
+            }
           })
+          //location.assign(res.body.payment_link);
+        }
+        else
+          swal("some error occured"," ","error");
       })
+    //   function onScriptLoad(oid,token,amount){
+    //     console.log("in on script");
+    //     var config = {
+    //       "root": "",
+    //       "flow": "DEFAULT",
+    //       "data": {
+    //       "orderId": oid, /* update order id */
+    //       "token": token, /* update token value */
+    //       "tokenType": "TXN_TOKEN",
+    //       "amount": amount /* update amount */
+    //       },
+    //       "handler": {
+    //         "notifyMerchant": function(eventName,data){
+    //           console.log("notifyMerchant handler function called");
+    //           console.log("eventName => ",eventName);
+    //           console.log("data => ",data);
+    //         } 
+    //       }
+    //     };
+  
+    //     if(window.Paytm && window.Paytm.CheckoutJS){
+    //       console.log("in paytm")
+    //          window.Paytm.CheckoutJS.onLoad(function excecuteAfterCompleteLoad() {
+    //           console.log("in checkout")
+    //             // initialze configuration using init method 
+    //             window.Paytm.CheckoutJS.init(config).then(function onSuccess() {
+    //                 // after successfully updating configuration, invoke JS Checkout
+    //                 window.Paytm.CheckoutJS.invoke();
+    //             }).catch(function onError(error){
+    //                 console.log("error => ",error);
+    //             });
+    //          });
+    //     } 
+    // }
+    // let index = window.location.href.indexOf('/');
+    // let link = window.location.href.substr(0,index);
+    // link = link + "after-payment"
+    //   let obj = {
+        
+    //     order_id: webstore.current_user.uid + "_" + Date.now(),
+    //     call_back_url: link,
+    //     amount: this.order_total+'',
+    //     cust_id: webstore.current_user.uid+''
+    //   }
+    //   this.$http.post("/api/initialize-transaction", obj).then(res =>{
+        
+    //       console.log(res.body)
+    //       let url = "https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid=KqVDCA97132325772368&orderId=" + res.body.body.orderId
+    //       console.log(url)
+    //       this.$http.post(url,JSON.stringify(res.body)).then(res2 =>{
+    //         console.log(res2.body)
+    //         onScriptLoad(res.body.body.orderId,res2.body.body.txnToken,res.body.body.txnAmount.value)
+    //         location.assign(link);
+    //       })
+    //   })
       // this.pay.key = "PEOPA8Hx";
       // this.pay.txnid = webstore.current_user.uid + "_" + Date.now();
       // if(this.items_in_cart.length==1){
@@ -2060,6 +2222,123 @@ const confirm_order = {
     if(localStorage.getItem('customer_details') && localStorage.getItem('delivery_details')){
       this.customer_details = JSON.parse(localStorage.getItem('customer_details'));
       this.delivery_details = JSON.parse(localStorage.getItem('delivery_details'));
+    }
+  }
+}
+const user_orders = {
+  template:`
+    <div class="mt-5">
+      <div v-if="orders.length==0" class="text-center">
+          <button class="btn btn-dark">No orders to show</button>
+      </div>
+      <div v-else>
+        <div v-for="order in orders" class="row justify-content-center mb-4">
+          <div class="col-10 col-lg-8 bg-dark text-light rounded orders-border text-lg-center">
+            <h3 class="text-center">Order Details</h3>
+            <div class="row mb-1"><div class="col-5 col-lg-3 pr-0">Order id : </div>{{order.order_id}}</div>
+            <div class="row mb-1"><div class="col-5 col-lg-3 pr-0">Status : </div>{{order.order_status}}</div>
+            <h4 class="text-center">Items Ordered :-</h4>
+            <div v-for="item in order.cart_contents" class="row justify-content-center mb-3">
+              <div class="col-10 text-dark bg-light rounded">
+                  
+                  <div class="row pl-3">Product Name :-</div>
+                  <div class="row pl-3">{{item.pname}}</div>
+                  <div class="row "><div class="col-5 col-lg-3 pr-0">Price : </div>{{item.pprice}}</div>
+                  <div class="row "><div class="col-5 col-lg-3 pr-0">Quantity : </div>{{item.no_in_cart}}</div>
+                  <div class="row "><div class="col-5 col-lg-3 pr-0">Sub total : </div>&#8377{{item.no_in_cart * item.pprice}}</div>
+              </div>
+            </div>
+            <div class="row mb-1 mt-4 mb-1"><div class="col-5 col-lg-3 pr-0" style="font-size: 0.89em;">Delivery charges:</div>&#8377{{order.delivery_details.total_delivery_charge}}</div>
+            <div class="row mb-1 "><div class="col-5 col-lg-3 pr-0">Total : </div>&#8377{{order.total}}</div>
+            <div class="row pl-3">Deliver at :-</div>
+            <div class="row pl-3 mb-2">{{order.customer_details.address}}</div>
+            <div class="row pl-3">Delivery expected on :-</div>
+            <div class="row pl-3 mb-2">{{order.delivery_details.delivery_date}}</div>
+
+          </div>
+        </div>
+        </div>
+      
+    </div>
+  `,
+  data: function(){
+    return {
+      orders: []
+    }
+  },
+  props: ["current_user"],
+  created(){
+    let obj = {
+      uid: this.current_user.uid
+    }
+    this.$http.post("/api/get-orders",obj).then(res=>{
+      console.log(res.body);
+      if(res.body.status==1)
+        res.body.orders = res.body.orders.replace(/\n/g, ' ');
+        console.log(res.body.orders.substring(550,563));
+        this.orders  = JSON.parse(res.body.orders);
+        this.orders.reverse(); 
+    })
+  }
+
+
+}
+const home = {
+  template:`
+  <div>
+  <div class="row justify-content-center" style="margin-top:-3em;">
+    <div class="col-12 home-para-main rounded py-3 px-3 px-lg-5  text-lg-center">
+        <h1 class="disp-main-home"><span class="font-weight-bold">Flyingwear</span> is a web app where you can find the best <span class="font-weight-bold">FASHION</span> at genuine price.</h1>
+        <h1 class="disp-main-home">Clothes are delivered directly from factory !!!</h1>
+    </div>
+  </div>
+  <div class="row justify-content-center mt-4">
+    <div class="bg-main-button col-lg-8 col-9 p-3 p-lg-4 disp-main-home text-center">Below Are Some Niches That We Sell</div>
+  </div>
+  <div class="row justify-content-center mt-5">
+    <div class="col-12 back-img-round-neck" v-on:click="chngto('/#/round-necks')">
+      
+    </div>
+  </div>
+
+  <div class="row justify-content-center mt-5" v-on:click="chngto('/#/Polos')">
+    <div class="col-12 back-img-polo back">
+      
+    </div>
+  </div>
+
+  <div class="row justify-content-center mt-5" v-on:click="chngto('/#/shirts')">
+    <div class="col-12 back-img-shirts back">
+      
+    </div>
+  </div>
+  <div class="row justify-content-center mt-5" v-on:click="chngto('/#/Sweat-shirts')">
+    <div class="col-12 back-img-sweatshirts back">
+      
+    </div>
+  </div>
+  <div class="row justify-content-center mt-5" v-on:click="chngto('/#/Kurtas')">
+    <div class="col-12 back-img-Kurtas back">
+      
+    </div>
+  </div>
+  <div class="row justify-content-center mt-5" v-on:click="chngto('/#/Jeans')">
+    <div class="col-12 back-img-Jeans back">
+      
+    </div>
+  </div>
+  <div class="row justify-content-center mt-5 mb-4" v-on:click="chngto('/#/Joggers')">
+    <div class="col-12 back-img-Joggers back">
+      
+    </div>
+  </div>
+  
+</div>
+  `,
+  methods:{
+    chngto(link){
+      location.assign(link);
+      VueScrollTo.scrollTo('#head');
     }
   }
 }
@@ -2205,9 +2484,23 @@ const router = new VueRouter({
           components:{
             'confirm-order': confirm_order
           }
+        },
+        {
+          path: '/orders',
+          components:{
+            'user-orders': user_orders
+          }
+        },
+        {
+          path: '/',
+          components:{
+            'home': home,
+            'head': head_of_page
+          }
         }
 			]
 });
+
 const webstore=new Vue({
 	http: {
             emulateJSON: true,

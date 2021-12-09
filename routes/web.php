@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Route;
  Route::get('/cust-form', function () {
     return view('customer_form');
 });
+Route::get('/after-payment', function () {
+    return view('after-payment');
+});
  
 Route::any('', function () {
     return view('flyingwear');
