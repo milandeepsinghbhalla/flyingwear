@@ -6,6 +6,7 @@ use App\Http\Controllers\usercontroller;
 use App\Http\Controllers\productcontroller;
 use App\Http\Controllers\shiprocketController;
 use App\Http\Controllers\paytmCheckoutController;
+use App\Http\Controllers\passwordreset;
 
 
 
@@ -46,6 +47,8 @@ Route::post('create-payment-order',[paytmCheckoutController::class,'create_payme
 Route::post('create-order',[paytmCheckoutController::class,'create_order']);
 Route::post('get-orders',[usercontroller::class,'get_orders']);
 Route::post('update-user-orders',[usercontroller::class,'update_user_orders']);
+Route::post('chk-user',[usercontroller::class,'chk_user']);
+Route::post('reset-pw',[passwordreset::class,'reset_pw']);
 
 Route::post('send-sha512',function(Request $req){
     $sha512_hash = hash("sha512", $req->realstr);

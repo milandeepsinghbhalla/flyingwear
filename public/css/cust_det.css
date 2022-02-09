@@ -1,12 +1,12 @@
 .back-form{
-    background-image: url("../storage/bg-form.jpg");
     background-size: 100% 100%;
     height: auto;
     
 }
 .above{
-    background: rgb(255, 255, 255) transparent;
-    background: rgba(255, 255, 255, 0.75);
+    
+    background: rgb(255, 190, 89) transparent;
+    background: rgb(255, 190, 89, 0.85);
 }
 hr.style-eight {
     overflow: visible;

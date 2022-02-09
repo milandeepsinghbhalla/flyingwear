@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\usercontroller;
+use App\Http\Controllers\passwordreset;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -24,5 +27,6 @@ Route::any('', function () {
     return view('flyingwear');
 });
 Auth::routes();
+Route::get('send-mail',[passwordreset::class,'send_mail']);
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

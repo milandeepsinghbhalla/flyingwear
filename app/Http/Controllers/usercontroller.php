@@ -8,7 +8,16 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\User;
 class usercontroller extends Controller
-{
+{   
+    public function chk_user(Request $req){
+        $hp = DB::table('users')->where('email',$req->email)->get();
+        if($hp->count()==1){
+            return ["res"=>1,"message"=>"valid user"];
+        }
+        else{
+            return ["res"=>0,"message"=>"There is no user account with that email...!!"];
+        }
+    }
     public function add_user(Request $req){
         $new_user = new User;
         if(!(User::where('email','=',$req->email)->exists())){

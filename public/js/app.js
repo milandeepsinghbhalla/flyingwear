@@ -73,6 +73,7 @@ Vue.http.options.emulateJSON = true;
 Vue.http.options.emulateHTTP = true;
 Vue.use(VueRouter);
 Vue.use(VueScrollTo);
+
 const new_product_main_card = {
 	template: `
 				<div class="col-lg-12 bg-dark crd-new-hrz">
@@ -278,6 +279,34 @@ const new_product_main_card = {
   //         });
   // }
 }
+const show_search_results = {
+  template:`
+    <div>
+      <div class="text-center">
+      <button class="btn btn-dark text-center mt-0 mb-4" style="margin-left:auto;margin-right:auto;">{{search_result.length}} results found !!!</button>
+      </div>
+      <div class="row" v-for="product in search_result" v-bind:key="product.pid + 'a'" style="text-align: left;margin: 0 auto;width:100%">
+						<div class="col-lg-8 p-0" style="text-align: left;margin: 0 auto">
+							<search-result-card v-bind:product="product"
+											  v-bind:can_add_to_cart="can_add_to_cart"
+											  v-bind:cart="cart"
+											  v-bind:items_in_cart="items_in_cart"
+											  v-bind:all_products="all_products"
+											  class="mb-4"
+											  ref="foo"
+											  
+							>
+											
+							</search-result-card>
+						</div>
+		  </div>
+    </div>
+  `,
+  props:["current_user","can_add_to_cart","cart","items_in_cart","all_products","search_result"],
+  components:{
+    'search-result-card': new_product_main_card
+  },
+}
 const show_filter_results = {
   template:`
     <div>
@@ -323,6 +352,221 @@ const show_filter_results = {
                 this.filter_results = JSON.parse(res.body.filters);
                 this.fetched = 1;
       })
+    }
+  }
+}
+const search_model = {
+  template:`
+       <div class="input-group">
+                
+                <input id="search" type="text" class="form-control" v-on:keyup.enter="search_clicked" v-model="search.text" placeholder="search anything..!!">
+                <div class="input-group-append bg-img-yellow" v-on:click="search_clicked">
+                  <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-search"></i></div>
+                </div>
+        </div>
+  `,
+  data: function(){
+    return {
+      search: {
+        text: ""
+      },
+      keywords: [],
+      sniches: [],
+      scols: [],
+      sprices: [],
+      ssizes: [],
+      niches:[{
+        words: ["shirts"],
+        nich: "shirts"
+      },
+      {
+        words: ["round","tshirts"],
+        nich: "round_necks",
+      },
+      {
+        words: ["lowers","joggers","trackpants"],
+        nich: "joggers"
+      },
+      {
+        words: ["polos"],
+        nich: "polos"
+      },
+      {
+        words: ["sweatshirts","hoodies"],
+        nich: "sweat_shirts"
+      },
+      {
+        words: ["kurtas"],
+        nich: "kurtas",
+
+      },
+      {
+        words: ["jeans","pants","denims"],
+        nich: "jeans"
+      },
+      {
+        words: ["caperies"],
+        nich: "caperies"
+      },
+      {
+        words: ["shorts","boxeres"],
+        nich: "shorts"
+      }
+
+    ],
+      colors:["Blue","red","green","brown","black","grey","pink","yellow","crimson","orange","purple","white","chocolate"],
+      num_operations:[{
+        words: ["under","less","below"],
+        operation: "under"
+      },
+      {
+        words: ["more","above","greator"],
+        operation: "above"
+      }
+    ]
+    }
+
+  },
+  props:["all_products","shirts","round_necks","joggers","polos","sweat_shirts","kurtas","jeans","caperies","shorts","search_result"],
+  methods: {
+    async search_clicked(){
+      this.sniches = [],
+      this.scols = [],
+      this.sprices = []
+      let nums = [];
+      let num_index = 0;
+      var operation = "";
+      if(this.search.text.length>0){
+      this.keywords = this.search.text.split(" ");
+        await this.keywords.forEach(async keyword=>{
+          if(keyword.length>=4){
+            var first_4_chars = keyword.toLowerCase().substring(0,4);
+            await this.niches.forEach(nic=>{
+              nic.words.forEach(word=>{
+                if(word.toLowerCase().substring(0,4) == first_4_chars){
+                  if(!this.sniches.includes(nic.nich))
+                    this.sniches.push(nic.nich);
+                }
+              })
+            })
+          }
+          console.log(this.sniches.length);
+          if(this.sniches.length ==0){
+            swal("Also enter a product or niche that we sell like sweatshirt or shirt or polos or hoodies or joggers or tshirts or jeans or kurtas"," ","warning");
+            
+          }
+          else{
+            
+          if(keyword.length>=3){
+            var first_three_chars = keyword.toLowerCase().substring(0,3)
+            this.colors.forEach(async col=>{
+                if(col.toLowerCase().substring(0,3) == first_three_chars){
+                  if(!this.scols.includes(col))
+                    await this.scols.push(col);
+                }
+            })
+          
+          }
+          if(keyword.length>=0){
+            if(!isNaN(keyword) && !isNaN(parseFloat(keyword))){
+              nums[num_index] = Number(keyword);
+              num_index++;
+            }
+              
+              this.num_operations.forEach(async oper => {
+              await  oper.words.forEach(async word=>{
+                console.log(word);
+                console.log(keyword);
+                  if(word.toLowerCase().substring(0,4) == keyword.toLowerCase().substring(0,4)){
+                    operation = oper.operation;
+                    console.log(oper.operation)
+                  }
+                })
+              })
+            
+            console.log(operation)
+          }
+        
+           var sf1 = [];
+        var sf2 = [];
+
+        if(this.scols.length>0){
+          
+
+          this[this.sniches[0]].forEach(el => {
+              this.scols.forEach(async element => {
+                if(element.toLowerCase() == el.colors[0].toLowerCase()){
+                 await sf1.push(el);
+                }
+              });
+          })
+          this.search_result = sf1;
+        }
+        else{
+          sf1 = this[this.sniches[0]];
+        }
+        if(nums.length==1){
+          let num = nums[0];
+          if(operation==="under"){
+            sf1.forEach(async el=>{
+              if(el.pprice<=num){
+                if(!sf2.includes(el))
+                await  sf2.push(el);
+              }
+            })
+          }
+          else if(operation==="above"){
+            sf1.forEach(async el=>{
+              if(el.pprice>=num){
+                if(!sf2.includes(el))
+                 await sf2.push(el);
+              }
+            })
+          }
+          else{
+            sf2 = sf1;
+          }
+
+        }
+        else if(nums.length==2){
+          let snum,bnum;
+          if(nums[0]<nums[1]){
+            snum=nums[0];
+            bnum=nums[1];
+          }
+          else{
+            snum=nums[1];
+            bnum=nums[0];
+          }
+
+          sf1.forEach(async el=>{
+            if(el.pprice>=snum&&el.pprice<=bnum){
+              if(!sf2.includes(el))
+               await sf2.push(el);
+            }
+          })
+        }
+        else{
+          sf2 = sf1;
+        }
+        this.search_result = sf2;
+
+        console.log(this.scols);
+        console.log(this.sniches);
+        console.log(this.search_result);
+        webstore.search_result = this.search_result;
+        $('.collapse').collapse('toggle');
+        location.assign("#/search-result");
+        VueScrollTo.scrollTo('#my_nav');
+      }
+        
+        })
+       
+      }
+      else{
+        swal("enter something to search"," ","warning");
+      }
+
     }
   }
 }
@@ -441,8 +685,9 @@ const filter_model = {
         if(this.ssizes.length>0){
           
           console.log(f1);
-          if(f1.length===0)
-            f1=this[this.filters.niche]
+          //if(f1.length===0)
+            if(this.scols.length==0)
+              f1=this[this.filters.niche]
           for(var m=0;m<f1.length;m++){
             // el.sizes.every(function(ell){
             //   this.ssizes.every(function(elll){
@@ -477,7 +722,8 @@ const filter_model = {
           this.final_result = f2;
         }
         if(this.sprices.length>0){
-          
+          if(this.scols.length==0&&this.ssizes.length==0)
+            f2 = this[this.filters.niche];
           let arr=[];
           console.log(f2);
           if(f1.length===0){
@@ -1031,9 +1277,12 @@ const upload_form_1 = {
 
 const login_form = {
   template: `
-        <div style = "display: flex; width: 100%" class="text center">
+        <div class="text center">
+          <div class="loader-container" v-if="show_annimation==1">
+                <div class="loader"></div>
+          </div>
           <div class="row justify-content-center mb-5 mx-auto" style = "width: 100%">
-      <div class="col-lg-6 px-0 d-flex justify-content-center bg-dark media-margin text-center">
+      <div class="col-lg-6 px-0 d-flex justify-content-center bg-dark media-margin text-center rounded">
 
 
         
@@ -1043,7 +1292,7 @@ const login_form = {
               <h3 class="text-center text-peach mb-3">Log in</h3>
             </div>
             
-            <div class="form-group">
+            <div class="form-group px-2">
               <div class="input-group">
                 <div class="input-group-prepend bg-img-yellow">
                     <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-envelope"></i></div>
@@ -1054,13 +1303,13 @@ const login_form = {
 
             </div>
             
-            <div class="form-group">
+            <div class="form-group px-2">
               <div class="input-group">
                 <div class="input-group-prepend bg-img-yellow">
                     <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
                 </div>
                 <input id="mp" type="password" class="form-control" v-model="login.password" placeholder="Password">
-                <div class="input-group-append bg-img-yellow" v-on:click="show_pass">
+                <div class="input-group-append bg-img-yellow" v-on:click="show_pass('mp')">
                   <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-eye"></i></div>
                 </div>
             </div>
@@ -1071,9 +1320,61 @@ const login_form = {
             <button type="button" class="btn orange button mt-2 mb-3" v-on:click="login_webstore()">Log in</button>
             </div>
 
-            <div><p class="text-left text-peach">Don't have an account ? <router-link class="text-info hover-white" to="/sign-up">Sign up</router-link></p></div>
+            <div><p class="text-left text-peach px-2">Don't have an account ? <router-link class="text-info hover-white" to="/sign-up">Sign up</router-link></p></div>
+            <div v-on:click="forgot_pw_clicked"><p class="text-left text-peach px-2">Did you forgot your password ? Forgot Password</p></div>
           </form>
         
+      </div>
+      
+    </div>
+    <div class="row justify-content-center mx-auto mb-5" style="width: 100%" v-if="fp_clicked==1">
+      <div class="col-lg-6 px-4 pb-0 d-flex justify-content-center bg-dark media-margin  rounded">
+          <div class="form-group mt-3">
+                <div class="input-group">
+                  <div class="input-group-prepend bg-img-yellow">
+                      <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
+                  </div>
+                  <input type="email" class="form-control" v-model="fp.otp" placeholder="enter otp">
+                </div>
+                <small id="otpHelp" class="form-text text-peach text-justify">enter the otp sent on your email, mail might be in your spam folder.</small>
+              <div class="button-parent">
+            <button type="button" class="btn orange button mt-2" v-on:click="chk_otp">Continue</button>
+      </div>  
+          </div>
+        
+         
+      </div>
+      
+    </div>
+    <div class="row justify-content-center mx-auto mt-5 mb-5" style="width: 100%" v-if="otp_verified==1">
+      <div class="col-lg-6 px-4 pb-0 d-flex justify-content-center bg-dark media-margin  rounded">
+          <div class="form-group mt-3">
+                <div class="input-group">
+                  <div class="input-group-prepend bg-img-yellow">
+                      <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
+                  </div>
+                  <input id="np" type="password" class="form-control" v-model="fp.new_pw" placeholder="enter new password">
+                  <div class="input-group-append bg-img-yellow" v-on:click="show_pass('np')">
+                  <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-eye"></i></div>
+                  </div>
+                </div>
+
+                <div class="input-group mt-3">
+                  <div class="input-group-prepend bg-img-yellow">
+                      <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-lock"></i></div>
+                  </div>
+                  <input id="cp" type="password" class="form-control" v-model="fp.cnpw" placeholder="confirm new password">
+                  <div class="input-group-append bg-img-yellow" v-on:click="show_pass('cp')">
+                  <div class="input-group-text bg-img-yellow font-weight-bolder"><i class="fas fa-eye"></i></div>
+                  </div>
+                </div>
+               
+              <div class="button-parent">
+            <button type="button" class="btn orange button mt-2" v-on:click="reset_pw">Reset Password</button>
+      </div>  
+          </div>
+        
+         
       </div>
       
     </div>
@@ -1082,19 +1383,127 @@ const login_form = {
   `,
   data: function(){
     return {
-      mp_clicked:0
+      show_annimation:0,
+      mp_clicked:0,
+      fp_clicked:0,
+      np_clicked:0,
+      cp_clicked:0,
+      otp_verified:0,
+      fp:{
+        otp: "",
+        new_pw:"",
+        cnpw:""
+      },
+      otp:0
     }
   },
   props: ['login'],
   methods: {
-    show_pass(e){
-      let inp =  document.getElementById('mp');
-      if(this.mp_clicked == 0){
-        this.mp_clicked=1;
+    reset_pw(){
+      if(this.fp.new_pw!=""&&this.fp.new_pw!=null&&this.fp.cnpw!=""&&this.fp.cnpw!=null){
+          if(this.fp.new_pw==this.fp.cnpw){
+            let reset_data = {
+              email: localStorage.getItem("fpw_email"),
+              new_pw: this.fp.new_pw
+            }
+            this.$http.post("/api/reset-pw",reset_data).then(res=>{
+              if(res.body.status==1){
+                swal(res.body.message," ","success");
+                this.login.password = "";
+                this.fp_clicked=0;
+                this.otp_verified=0;
+                VueScrollTo.scrollTo("#my_nav")
+
+              }
+            })
+          }
+          else{
+            swal("new password and confirm password didn't matched..!!"," ","error");
+          }
+      }
+      else{
+        swal("please enter both new password and confirm password"," ","warning");
+      }
+    },
+    chk_otp(){
+      if(this.fp.otp!=""&&this.fp.otp!=null){
+          if(this.fp.otp==this.otp){
+            this.otp_verified = 1;
+            setTimeout(function(){
+              VueScrollTo.scrollTo('#cp');
+            },500)
+            
+          }
+          else{
+            swal("OTP didn't matched....!!"," ","error");
+          }
+      }
+    },
+    async forgot_pw_clicked(){
+      if(this.login.email!=""&&this.login.email!=null){
+        this.show_annimation = 1;
+        let email = this.login.email;
+        localStorage.setItem("fpw_email",email);
+        async function chk_valid_user(email,http){
+              let user_email = {
+                email: email
+              }
+              let valid_user = 0
+              let message = ""
+              let http_result = await http.post("/api/chk-user",user_email).then(result=>{
+                console.log(result.body);
+                  valid_user = result.body.res;
+                  message = result.body.message;
+                  let valid_user_res = {
+                    valid_user: valid_user,
+                    message: message
+                  }
+                  
+                  return valid_user_res;
+              })
+              return http_result;
+              
+        }
+        let cvu_result = {}
+        await chk_valid_user(email,this.$http).then( r=>{
+          cvu_result = r;
+        });
+        console.log(cvu_result);
+        if(cvu_result.valid_user){
+          let otp = Math.floor(1000 + Math.random() * 9000);
+          fpw_details={
+            email: this.login.email,
+            otp: otp
+          }
+          this.otp = otp;
+          this.$http.get("/send-mail", {params: fpw_details}).then(res=>{
+            this.show_annimation=0;
+            swal("A mail has been sent to the mentioned email with OTP for resetting password...!!","The mail may be in spam folder of your mail account...!!","success");
+            this.fp_clicked = 1;
+            setTimeout(function(){
+              VueScrollTo.scrollTo('#otpHelp');
+            },500)
+            
+          })
+        }
+        else{
+          swal(cvu_result.message," ","error");
+        }
+      }
+      else{
+        swal("enter your account email first...!!"," ","warning");
+      }
+    },
+    show_pass(id){
+      console.log(id);
+      let inp =  document.getElementById(id);
+      let clicked_var = id + '_clicked';
+      if(this[clicked_var] == 0){
+        this[clicked_var]=1;
         inp.type = 'text';
       }
-      else if(this.mp_clicked>0){
-        this.mp_clicked=0;
+      else if(this[clicked_var]>0){
+        this[clicked_var]=0;
         inp.type = 'password'
       }
     },
@@ -1316,7 +1725,7 @@ const sign_up_form = {
              
         }
         else{
-              swal("password must contain 8-15 characters with atleast one uppercase and one lowercase and one special charecter like @"," ","warning");
+              swal("password must contain 8-15 characters with atleast one uppercase and one lowercase and one special charecter like @ and also a number eg:- Abcd123@"," ","warning");
             }
 
       }
@@ -1341,7 +1750,7 @@ const total = {
     template:`
         <div class="row justify-content-center mb-5 pb-5">
             <div class="col-lg-6 text-center">
-            <router-link to="/customer-details" v-scroll-to="'#head'"><button v-show="total>0" class="btn btn-dark btn-lg">Total = &#8377{{total}} Proceed <i class="fas fa-thumbs-up"></i></button></router-link>
+            <router-link to="/customer-details" v-scroll-to="'#my_nav'"><button v-show="total>0" class="btn btn-dark btn-lg">Total = &#8377{{total}} Proceed <i class="fas fa-thumbs-up"></i></button></router-link>
                 <button v-show="total==0" class="btn btn-dark btn-lg">Cart is empty <i class="fas fa-frown-open"></i></button>
             </div>
         </div>
@@ -1713,6 +2122,7 @@ const customer_details_form = {
     async check_delivery_details(){
       if(this.customer_details.pincode == null || this.customer_details.pincode =="" || this.customer_details.pay_method == null || this.customer_details.pay_method ==""){
         swal("enter the pincode and payment method to check delivery details !!!"," ","error");
+        
       }
       else{
         this.show_annimation = 1;
@@ -1810,12 +2220,28 @@ const customer_details_form = {
     //   });
     // },
     async con_from_details(){
-      
+      let msg = "all good";
+      function phn_length(cd){
+        console.log("in function")
+        if(cd.phn.length!=10){
+          msg = "phone number must be of 10 digit";
+          return 0;
+          
+        }
+        else if(cd.alt_phn.length!=10){
+          msg = "alternate phone number must be of 10 digit";
+          return 0;
+        }
+        else 
+          return 1;
+      }
       function is_filled(cd){
         console.log(cd);
         for (let key in cd){
-          if(cd[key] === '' || cd[key] === null)
+          if(cd[key] === '' || cd[key] === null){
+            msg = "all fields are required"
             return 0;
+          }
         }
         return 1;
         // if(cd.pay_method !== undefined && cd.pincode !== undefined && cd.name !== undefined && cd.address!== undefined && cd.landmark !== undefined && cd.city !== undefined && cd.state !== undefined && cd.email !==undefined && cd.phn !== undefined && cd.alt_phn !== undefined)
@@ -1823,8 +2249,8 @@ const customer_details_form = {
         // else
         //   return 1;
       }
-      console.log(is_filled(this.customer_details))
-      if(is_filled(this.customer_details)){
+      console.log(is_filled(this.customer_details)&& phn_length(this.customer_details))
+      if(is_filled(this.customer_details) && phn_length(this.customer_details)){
         localStorage.setItem('customer_details',JSON.stringify(this.customer_details));
         if(1){
           this.show_annimation = 1;
@@ -1909,7 +2335,7 @@ const customer_details_form = {
         }
       }
       else{
-        swal("fill up all fields !!!"," ","error");
+        swal(msg," ","error");
       }
     }
   
@@ -2039,6 +2465,8 @@ const confirm_order = {
               };
             
               localStorage.removeItem('cb_cart');
+              console.log("deleting cart");
+              webstore.cart.length = 0;
               
               this.$http.post("/api/update-cart", cart_update).then(result => {
                                         console.log(result.body);
@@ -2121,6 +2549,7 @@ const confirm_order = {
         }
         else
           swal("some error occured"," ","error");
+          console.log(res.body);
       })
     //   function onScriptLoad(oid,token,amount){
     //     console.log("in on script");
@@ -2296,7 +2725,7 @@ const home = {
     <div class="bg-main-button col-lg-8 col-9 p-3 p-lg-4 disp-main-home text-center">Below Are Some Niches That We Sell</div>
   </div>
   <div class="row justify-content-center mt-5">
-    <div class="col-12 back-img-round-neck" v-on:click="chngto('/#/round-necks')">
+    <div class="col-12 back-img-round-neck" v-on:click="chngto('/#/round-neck')">
       
     </div>
   </div>
@@ -2338,7 +2767,7 @@ const home = {
   methods:{
     chngto(link){
       location.assign(link);
-      VueScrollTo.scrollTo('#head');
+      VueScrollTo.scrollTo('#my_nav');
     }
   }
 }
@@ -2473,6 +2902,12 @@ const router = new VueRouter({
           }
         },
         {
+          path: '/search-result',
+          components:{
+            'show-search-results': show_search_results
+          }
+        },
+        {
           path: '/customer-details',
           components:{
             'customer-details-form': customer_details_form,
@@ -2514,6 +2949,7 @@ const webstore=new Vue({
     router: router,
     el: '#app',
     data: {
+      search_result: [],
       form1: {
         t_name: '',
         pstock: '',
@@ -3029,7 +3465,8 @@ const webstore=new Vue({
     },
     components: {
     	'product-card': new_product_main_card,
-      'filter-model': filter_model
+      'filter-model': filter_model,
+      'search-model': search_model
     },
     methods: {
       tab_closed(){

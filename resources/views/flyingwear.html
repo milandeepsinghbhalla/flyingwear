@@ -16,6 +16,12 @@
 	<script src="https://kit.fontawesome.com/16139588c8.js" crossorigin="anonymous"></script>
 	
 	<style type="text/css">
+		.carousel-control-prev-icon {
+			background-color: black;
+		}
+		.carousel-control-next-icon{
+			background-color: black;
+		}
 		body::-webkit-scrollbar {
 		  width: 1em;
 		}
@@ -357,6 +363,17 @@
 
 	 	  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 	 	  	<ul class="navbar-nav ml-auto">
+				   <li class="nav-item"><search-model :all_products="all_products"
+				  :shirts="shirts"
+				  :round_necks="round_necks"
+				  :joggers="joggers"
+				  :polos="polos"
+				  :sweat_shirts="sweat_shirts"
+				  :kurtas="kurtas"
+				  :jeans="jeans"
+				  :caperies="caperies"
+				  :shorts="shorts"
+				  :search_result="search_result"></search-model></li>
 	 	  		 <li class="nav-item">
 			      <a class="nav-link" href="#" data-toggle="collapse" data-target="#navbarSupportedContent">Hi {{current_user.name.split(' ')[0]}}</a>
 		   	 	</li>
@@ -393,26 +410,26 @@
 				              <li class="dropdown-submenu">
 				                <a class="dropdown-item dropdown-toggle" href="#">Upper-wear</a>
 				                <ul class="dropdown-menu">
-				                  <li><router-link to="/shirts" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent"  class="dropdown-item">Shirts</router-link></li>
+				                  <li><router-link to="/shirts" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent"  class="dropdown-item">Shirts</router-link></li>
 				                  <li class="dropdown-submenu">
 				                  	 <a class="dropdown-item dropdown-toggle" href="#">T-Shirts</a>
 				                  	 <ul class="dropdown-menu">
-				                  		<li><router-link to="/round-neck" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Round-neck</router-link></li>
-				                  		<li><router-link to="/Polos" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Polos</router-link></li>
+				                  		<li><router-link to="/round-neck" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Round-neck</router-link></li>
+				                  		<li><router-link to="/Polos" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Polos</router-link></li>
 				                  	</ul>
 				                  	
 				                  </li>
-								  <li><router-link to="/Sweat-shirts" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Sweat-shirts</router-link></li>
-								  <li><router-link to="/Kurtas" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Kurtas</router-link></li>
+								  <li><router-link to="/Sweat-shirts" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Sweat-shirts</router-link></li>
+								  <li><router-link to="/Kurtas" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Kurtas</router-link></li>
 				                </ul>
 				              </li>
 				              <li class="dropdown-submenu">
 				                <a class="dropdown-item dropdown-toggle" href="#">Bottom-wear</a>
 				                <ul class="dropdown-menu">
-									<li><router-link to="/Jeans" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Jeans</router-link></li>
-									<li><router-link to="/Joggers" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Joggers</router-link></li>
-									<li><router-link to="/Caperies" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Caperies</router-link></li>
-									<li><router-link to="/Shorts" v-scroll-to="'#head'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Shorts</router-link></li>
+									<li><router-link to="/Jeans" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Jeans</router-link></li>
+									<li><router-link to="/Joggers" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Joggers</router-link></li>
+									<li><router-link to="/Caperies" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Caperies</router-link></li>
+									<li><router-link to="/Shorts" v-scroll-to="'#my_nav'" data-toggle="collapse" data-target="#navbarSupportedContent" class="dropdown-item">Shorts</router-link></li>
 				                </ul>
 				              </li>
 				            </ul>
@@ -477,6 +494,14 @@
 												:items_in_cart="items_in_cart"
 												:all_products="all_products"
 												:current_user="current_user"
+		>
+		</router-view>
+		<router-view name="show-search-results" v-bind:can_add_to_cart="can_add_to_cart"
+												v-bind:cart="cart"
+												:items_in_cart="items_in_cart"
+												:all_products="all_products"
+												:current_user="current_user"
+												:search_result="search_result"
 		>
 		</router-view>
 
@@ -688,7 +713,7 @@
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script src="js/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-scrollto"></script>
-<script type="text/javascript" src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue-router@3.0.7/dist/vue-router.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.2"></script>
 <!-- <script type="text/javascript" src="vue.js"></script> -->
